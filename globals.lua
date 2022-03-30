@@ -101,16 +101,17 @@ Graphics = love.graphics
 States = {
     game = require 'states.game',
     menu = require 'states.menu',
-    keybinds = require 'states.keybinds'
+    keybinds = require 'states.keybinds',
+    splash = require 'states.splash'
 }
 
 Components = {
-    note = require 'components.note'
+    note = require 'components.note',
+    strums = require 'components.strums',
+    inputs = require 'components.inputs'
 }
 
-GameVars = {
-    chartingMode = false
-}
+GameVars = {chartingMode = false}
 
 GameVars.inputPlace = {}
 GameVars.inputPlace2 = {}
@@ -129,6 +130,8 @@ GameVars.inputPlace.size = 30
 GameVars.inputPlace2.size = 30
 GameVars.inputPlace3.size = 30
 GameVars.inputPlace4.size = 30
+
+GameVars.speed = 1000
 
 -- adds the TU sound when you press a keybind
 Sounds = {

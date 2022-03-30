@@ -31,7 +31,7 @@ function menu:draw()
     love.gradient.draw(function()
         love.graphics.rectangle("fill", x, y, width, height)
     end, "square", x + width / 2, y + height / 2, width / 2, height / 2, color1,
-    color2)
+                       color2)
     Graphics.setColor(0, 0, 0, alpha.alpha)
     love.graphics.print("Press Enter to play, Press Esc to change keybinds",
                         love.graphics.getWidth() / 2,

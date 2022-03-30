@@ -16,7 +16,9 @@ function keybinds:enter() end
 function keybinds:update(dt) end
 
 function keybinds:keypressed(key, code)
-    if not k1 or not k2 or not k3 or not k4 then k1 = true end
+    if not k1 then
+        if not k2 then if not k3 then if not k4 then k1 = true end end end
+    end
     if k1 then
         love.filesystem.write("key1", key)
         k1 = false

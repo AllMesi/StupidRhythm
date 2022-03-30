@@ -14,7 +14,7 @@ function love.load()
     for k in pairs(love.handlers) do callbacks[#callbacks + 1] = k end
 
     State.registerEvents(callbacks)
-    State.switch(States.menu)
+    State.switch(States.splash)
 
     if DEBUG then
         local loadTimeEnd = love.timer.getTime()
