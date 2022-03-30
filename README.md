@@ -1,5 +1,5 @@
 # how to play
-## first install love2d:
+## install love2d:
 #
 ### linux:
 ### arch based: `sudo pacman -S love` 
