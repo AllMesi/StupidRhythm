@@ -3,10 +3,11 @@ local game = {}
 local cameraZoom = {}
 
 local count = 0
+local step = 0
 
 local reverseBeat = true
 
-cameraZoom.zoom = 1
+cameraZoom.zoom = 0.99
 
 function game:init() end
 
@@ -43,6 +44,7 @@ function game:enter()
     Song:play()
     Song:on("beat", function(n)
         -- print("step:", n, "count:", count)
+        step = n
         count = count + 1
         if count == 4 then
             count = 0
@@ -101,14 +103,20 @@ function game:mousepressed(x, y, mbutton) end
 function game:draw()
     Graphics.setColor(1, 1, 1)
     camera:attach()
+    local size = 100
+    for x = 0, math.ceil(love.graphics.getWidth() / size) do
+        for y = 0, math.ceil(love.graphics.getHeight() / size) do
+            love.graphics.rectangle("line", x * size, y * size, size, size)
+        end
+    end
     Components.note:draw()
     Components.huds.hudCircles:draw()
     Components.huds.hudOther:draw()
     Components.huds.hudLines:draw()
     camera:detach()
     Components.huds.hudLinesOutLines:draw()
-    love.graphics.print(Song:getTime() .. " | " .. os.date("%X", os.time()),
-                        love.graphics.getWidth() / 2, 0)
+    love.graphics.print(Song:getTime() .. " | " .. os.date("%X", os.time()) ..
+                            " | " .. step, love.graphics.getWidth() / 2, 0)
     love.graphics.draw(cursor, love.mouse.getX() - 7, love.mouse.getY() - 7)
     love.graphics.print(string.format("%.3f", Result * 1000), 343, 0)
 end

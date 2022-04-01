@@ -52,7 +52,9 @@ CONFIG = {
             shadowOffset = {x = 1, y = 1},
             position = {x = 10, y = 10}
         }
-    }
+    },
+
+    mobile = false
 }
 
 local function makeFont(path)

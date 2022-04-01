@@ -22,6 +22,10 @@ function love.load()
 
     cursor = love.graphics.newImage("assets/images/cursor.png")
 
+    if love.system.getOS() == 'iOS' or love.system.getOS() == 'Android' then
+        CONFIG.mobile = true
+    end
+
     local loadTimeEnd = love.timer.getTime()
     local loadTime = (loadTimeEnd - loadTimeStart)
     print(("Loaded game in %.3f seconds."):format(loadTime))
@@ -79,6 +83,11 @@ end
 
 function love.keypressed(key, code, isRepeat)
     if not RELEASE and code == CONFIG.debug.key then DEBUG = not DEBUG end
+    if key == "f11" then
+        fullscreen = not fullscreen
+        love.window.setFullscreen(fullscreen, fstype)
+        -- love.resize(love.graphics.getDimensions())
+    end
 end
 
 function love.threaderror(thread, errorMessage)
