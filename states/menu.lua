@@ -6,26 +6,28 @@ alpha.alpha = 0
 
 function menu:init() end
 
+---@diagnostic disable-next-line: redundant-parameter
 function menu:enter() Timer.tween(1, alpha, {alpha = 1}, 'in-out-quad') end
 
 function menu:update(dt) end
 
 function menu:keypressed(key, code)
     if key == 'return' then
-        Timer.script(function(wait)
-            Timer.tween(1, alpha, {alpha = 0}, 'in-out-quad')
-            wait(1)
-            State.switch(States.game)
-        end)
+        startGame(love.filesystem.read('assets/songs/play'))
     end
+    -- Timer.script(function(wait)
+    --     Timer.tween(1, alpha, {alpha = 0}, 'in-out-quad')
+    --     wait(1)
+    -- end)
+    -- end
     if key == 'escape' then State.switch(States.keybinds) end
 end
 
 function menu:mousepressed(x, y, mbutton) end
 
 function menu:draw()
-    color1 = {0, 0, 0, alpha.alpha}
-    color2 = {1, 1, 1, alpha.alpha}
+    local color1 = {0, 0, 0, alpha.alpha}
+    local color2 = {1, 1, 1, alpha.alpha}
     local x, y = 0, 0
     local width, height = love.graphics.getWidth(), love.graphics.getHeight()
     love.gradient.draw(function()
@@ -36,6 +38,8 @@ function menu:draw()
     love.graphics.print("Press Enter to play, Press Esc to change keybinds",
                         love.graphics.getWidth() / 2,
                         love.graphics.getHeight() / 2)
+    Graphics.setColor(0, 0, 0)
+    love.graphics.draw(cursor, love.mouse.getX() - 7, love.mouse.getY() - 7)
 end
 
 return menu

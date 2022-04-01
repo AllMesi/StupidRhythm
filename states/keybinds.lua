@@ -41,8 +41,8 @@ end
 function keybinds:mousepressed(x, y, mbutton) end
 
 function keybinds:draw()
-    color1 = {0, 0, 0}
-    color2 = {1, 1, 1}
+    local color1 = {0, 0, 0}
+    local color2 = {1, 1, 1}
     local x, y = 0, 0
     local width, height = love.graphics.getWidth(), love.graphics.getHeight()
     love.gradient.draw(function()

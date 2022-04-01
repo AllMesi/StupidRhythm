@@ -1,3 +1,6 @@
+#### hey thanks for looking at my game
+#### im mostly self taught so expect alot of bugs and stuff
+
 # how to play
 ## install love2d:
 #

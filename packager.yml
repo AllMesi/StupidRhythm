@@ -1,0 +1,14 @@
+name: StupidRhythm
+version: 0.0.1
+description: just a stupid little game
+
+assets:
+  - "*"
+  - "*/**/*"
+
+targets:
+  - love
+  - linux
+  - win-32
+  - win-64
+  - mac

@@ -1,13 +1,17 @@
 local loadTimeStart = love.timer.getTime()
 
-require 'globals'
+require 'components.globals'
 
 function love.load()
+    print('loading...')
+    love.window.setVSync(false)
     love.window.setIcon(love.image.newImageData(CONFIG.window.icon))
     love.graphics.setDefaultFilter(CONFIG.graphics.filter.down,
                                    CONFIG.graphics.filter.up,
                                    CONFIG.graphics.filter.anisotropy)
     love.window.maximize()
+
+    love.mouse.setVisible(false)
 
     -- Draw is left out so we can override it ourselves
     local callbacks = {'update'}
@@ -16,11 +20,13 @@ function love.load()
     State.registerEvents(callbacks)
     State.switch(States.splash)
 
-    if DEBUG then
-        local loadTimeEnd = love.timer.getTime()
-        local loadTime = (loadTimeEnd - loadTimeStart)
-        print(("Loaded game in %.3f seconds."):format(loadTime))
-    end
+    cursor = love.graphics.newImage("assets/images/cursor.png")
+
+    local loadTimeEnd = love.timer.getTime()
+    local loadTime = (loadTimeEnd - loadTimeStart)
+    print(("Loaded game in %.3f seconds."):format(loadTime))
+    print(love.filesystem.getSaveDirectory())
+    print(love.filesystem.getDirectoryItems("assets"))
 end
 
 function love.update(dt) Timer.update(dt) end
@@ -46,7 +52,7 @@ function love.draw()
             memoryUnit = "MB"
         end
         local info = {
-            "FPS: " .. ("%3d"):format(love.timer.getFPS()),
+            "FPS: " .. ("%3d"):format(1.0 / love.timer.getDelta()),
             "DRAW: " .. ("%7.3fms"):format(Lume.round(drawTime * 1000, .001)),
             "Garbage: " .. string.format("%7.2f", Lume.round(ram, .01)) ..
                 memoryUnit,
@@ -276,5 +282,47 @@ function love.errorhandler(msg)
         love.graphics.origin()
 
         if love.timer then love.timer.sleep(0.016) end
+    end
+end
+
+function love.run()
+    if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
+
+    -- We don't want the first frame's dt to include time taken by love.load.
+    if love.timer then love.timer.step() end
+
+    local dt = 0
+
+    -- Main loop time.
+    return function()
+        -- Process events.
+        if love.event then
+            love.event.pump()
+            for name, a, b, c, d, e, f in love.event.poll() do
+                if name == "quit" then
+                    if not love.quit or not love.quit() then
+                        return a or 0
+                    end
+                end
+                love.handlers[name](a, b, c, d, e, f)
+            end
+        end
+
+        -- Update dt, as we'll be passing it to update
+        if love.timer then dt = love.timer.step() end
+
+        -- Call update and draw
+        if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
+
+        if love.graphics and love.graphics.isActive() then
+            love.graphics.origin()
+            love.graphics.clear(love.graphics.getBackgroundColor())
+
+            if love.draw then love.draw() end
+
+            love.graphics.present()
+        end
+
+        if love.timer then love.timer.sleep(0.001) end
     end
 end
