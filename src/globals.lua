@@ -10,7 +10,7 @@ RELEASE = false
 
 StupidRhythm = {}
 
-StupidRhythm.ver = "0.0.1.0"
+StupidRhythm.ver = "0.1.4"
 
 StupidRhythm.name = "StupidRhythm"
 
