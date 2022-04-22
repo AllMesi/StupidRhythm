@@ -1,0 +1,1 @@
+return{["tags"]={[1]="fnf"},["name"]="thearchy",["bpm"]=999,["description"]="fnf song test",["notes"]={[1]={[1]=1,[2]=1,[3]=1,[4]=1},[2]={[1]=100,[2]=200,[3]=300,[4]=400}},["author"]="maevings",["path"]="mods/songs/Taimuresu.ogg"}

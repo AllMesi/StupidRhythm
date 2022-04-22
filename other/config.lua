@@ -1,0 +1,79 @@
+return {
+    songSettings = {
+        circleStrum1 = {
+            curRadius = 30,
+            radiusIdle = 30,
+            radiusPressed = 20,
+            radiusReleased = 30,
+            x = 0,
+            y = 0
+        },
+        circleStrum2 = {
+            curRadius = 30,
+            radiusIdle = 30,
+            radiusPressed = 20,
+            radiusReleased = 30,
+            x = 0,
+            y = 0
+        },
+        circleStrum3 = {
+            curRadius = 30,
+            radiusIdle = 30,
+            radiusPressed = 20,
+            radiusReleased = 30,
+            x = 0,
+            y = 0
+        },
+        circleStrum4 = {
+            curRadius = 30,
+            radiusIdle = 30,
+            radiusPressed = 20,
+            radiusReleased = 30,
+            x = 0,
+            y = 0
+        },
+        barStrum = {},
+        noteSpeed1 = 3000, -- changes the note speed of noteRow1
+        noteSpeed2 = 3000, -- changes the note speed of noteRow2
+        noteSpeed3 = 3000, -- changes the note speed of noteRow3
+        noteSpeed4 = 3000, -- changes the note speed of noteRow4
+        barSpeed = 1500, -- stupid
+        noFail = false, -- no effect right now
+        key1 = "x", -- key to press for noteRow1
+        key2 = "c", -- key to press for noteRow2
+        key3 = ",", -- key to press for noteRow3
+        key4 = ".", -- key to press for noteRow4
+        key1alt = "left", -- key to press for noteRow1
+        key2alt = "down", -- key to press for noteRow2
+        key3alt = "up", -- key to press for noteRow3,
+        key4alt = "right", -- key to press for noteRow4
+        drawSB = false,
+        tweenSB = false,
+        drawGrid = true,
+        circlesFlying = false,
+        circlesFloating = false,
+        strumLine = true, --strum line
+        gridSquareWidth = 40,
+        gridSquareHeight = 40,
+        paused = false,
+        barNotes = false, -- experimental
+        bgColour = {0.1, 0.1, 0.1, 1},
+        foreColour = {0.5, 0.5, 0.5, 1},
+        circleThickness = 2, -- thickness of the strum circles
+        lineThickness = 10, -- thickness of the line besides the strum circles
+        upscroll1 = false, -- very experimental
+        upscroll2 = false, -- very experimental
+        upscroll3 = false, -- very experimental
+        upscroll4 = false, -- very experimental
+    },
+    fps = 240, -- ultra disables vsync if set to 0 lol
+    vsync = false, -- disables fps option above if true
+    customCursor = false, -- makes custom cursor
+    grabCursor = false, -- grabs the cursor in the window
+    windowIcon = "images/icon.png", -- that image you see on the window
+    title = "Default Title", -- the title of the window
+    extraInfoInTitle = true, -- adds extra info to the title
+    maximiseOnStart = true, -- maximises the window on start
+    minimizeOnStart = false, -- minimises the window on start
+    randomSongs = {"失望した.ogg"}
+}

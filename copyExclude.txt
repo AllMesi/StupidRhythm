@@ -1,0 +1,4 @@
+.exe\
+7z.dll\
+discordRPC.dll\
+discordRPCx32.dll\
