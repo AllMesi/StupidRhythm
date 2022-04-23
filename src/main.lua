@@ -14,6 +14,8 @@ local updateWhileShowingLogs = false
 function love.load()
     love.filesystem.mount(love.filesystem.getSourceBaseDirectory(), "")
 
+    stupidDumbComicSansHahaMegalovania = love.graphics.newFont("fonts/COMIC.ttf", 12)
+
     require "globals"
     print("Loading...")
 
@@ -85,8 +87,10 @@ end
 function love.focus(f)
     if not f and updating then
         updating = false
+        fps(true, 5)
     elseif f and not updating then
         updating = true
+        fps(true, GameConfig.fps)
     end
 end
 
@@ -105,52 +109,46 @@ function love.draw()
     end
     gr.setLineWidth(1)
     gr.pop()
+    love.graphics.setFont(stupidDumbComicSansHahaMegalovania)
     local drawTimeEnd = love.timer.getTime()
     local drawTime = drawTimeEnd - drawTimeStart
-    -- if DEBUG then
-    --     love.graphics.push()
-    --     local x, y = CONFIG.debug.stats.position.x, CONFIG.debug.stats.position.y
-    --     local dy = CONFIG.debug.stats.lineHeight
-    --     local stats = love.graphics.getStats()
-    --     local memoryUnit = "KB"
-    --     local ram = collectgarbage("count")
-    --     local vram = stats.texturememory / 1024
-    --     if not CONFIG.debug.stats.kilobytes then
-    --         ram = ram / 1024
-    --         vram = vram / 1024
-    --         memoryUnit = "MB"
-    --     end
-    --     local info = {
-    --         fps(false),
-    --         "DRAW: " .. ("%7.3fms"):format(Lume.round(drawTime * 1000, .001)),
-    --         "RAM: " .. string.format("%7.2f", Lume.round(ram, .01)) .. memoryUnit,
-    --         os.date("%I:%M%p")
-    --     }
-    --     for i, text in ipairs(info) do
-    --         local sx, sy = CONFIG.debug.stats.shadowOffset.x, CONFIG.debug.stats.shadowOffset.y
-    --         love.graphics.setColor(CONFIG.debug.stats.shadow)
-    --         love.graphics.print(text, x + sx, y + sy + (i - 1) * dy)
-    --         love.graphics.setColor(CONFIG.debug.stats.foreground)
-    --         love.graphics.print(text, x, y + (i - 1) * dy)
-    --     end
-    --     love.graphics.pop()
-    -- else
-    --     love.graphics.push()
-    --     local x, y = CONFIG.debug.stats.position.x, CONFIG.debug.stats.position.y
-    --     local dy = CONFIG.debug.stats.lineHeight
-    --     local info = {
-    --         fps(false),
-    --         os.date("%I:%M%p")
-    --     }
-    --     for i, text in ipairs(info) do
-    --         local sx, sy = CONFIG.debug.stats.shadowOffset.x, CONFIG.debug.stats.shadowOffset.y
-    --         love.graphics.setColor(CONFIG.debug.stats.shadow)
-    --         love.graphics.print(text, x + sx, y + sy + (i - 1) * dy)
-    --         love.graphics.setColor(CONFIG.debug.stats.foreground)
-    --         love.graphics.print(text, x, y + (i - 1) * dy)
-    --     end
-    --     love.graphics.pop()
-    -- end
+    if DEBUG then
+        love.graphics.push()
+        local x, y = CONFIG.debug.stats.position.x, CONFIG.debug.stats.position.y
+        local dy = CONFIG.debug.stats.lineHeight
+        local stats = love.graphics.getStats()
+        local memoryUnit = "KB"
+        local ram = collectgarbage("count")
+        local vram = stats.texturememory / 1024
+        if not CONFIG.debug.stats.kilobytes then
+            ram = ram / 1024
+            vram = vram / 1024
+            memoryUnit = "MB"
+        end
+        local info = {fps(false), "DRAW: " .. ("%7.3fms"):format(Lume.round(drawTime * 1000, .001)),
+                      "RAM: " .. string.format("%7.2f", Lume.round(ram, .01)) .. memoryUnit, os.date("%I:%M%p")}
+        for i, text in ipairs(info) do
+            local sx, sy = CONFIG.debug.stats.shadowOffset.x, CONFIG.debug.stats.shadowOffset.y
+            love.graphics.setColor(CONFIG.debug.stats.shadow)
+            love.graphics.print(text, x + sx, y + sy + (i - 1) * dy)
+            love.graphics.setColor(CONFIG.debug.stats.foreground)
+            love.graphics.print(text, x, y + (i - 1) * dy)
+        end
+        love.graphics.pop()
+    else
+        love.graphics.push()
+        local x, y = CONFIG.debug.stats.position.x, CONFIG.debug.stats.position.y
+        local dy = CONFIG.debug.stats.lineHeight
+        local info = {fps(false), os.date("%I:%M%p")}
+        for i, text in ipairs(info) do
+            local sx, sy = CONFIG.debug.stats.shadowOffset.x, CONFIG.debug.stats.shadowOffset.y
+            love.graphics.setColor(CONFIG.debug.stats.shadow)
+            love.graphics.print(text, x + sx, y + sy + (i - 1) * dy)
+            love.graphics.setColor(CONFIG.debug.stats.foreground)
+            love.graphics.print(text, x, y + (i - 1) * dy)
+        end
+        love.graphics.pop()
+    end
     gr.setColour(1, 1, 1)
 end
 
@@ -183,12 +181,28 @@ function love.keypressed(key, code, isRepeat)
         if key == "0" then
             if love.window.isMaximized() then
                 wasMaximized = true
+            else
+                wasMaximized = false
             end
             wi.setMode(1280, 720, {
                 vsync = false,
                 resizable = true
             })
             if wasMaximized then
+                love.window.maximize()
+            end
+        end
+        if key == "1" then
+            love.window.setFullscreen(not love.window.getFullscreen())
+            wi.setMode(1280, 720, {
+                vsync = love.window.getFullscreen(),
+                fullscreen = love.window.getFullscreen()
+            })
+            if not love.window.getFullscreen() then
+                wi.setMode(1280, 720, {
+                    vsync = false,
+                    resizable = true
+                })
                 love.window.maximize()
             end
         end

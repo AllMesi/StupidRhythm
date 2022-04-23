@@ -1,48 +1,64 @@
 local stars = {}
-local star = {}
+local _star = {}
+
+local going = false
 
 function stars:update(dt)
-    table.insert(star, {
+    _addStar()
+    if going then
+        for i, v in ipairs(_star) do
+            if v.y > love.graphics.getHeight() then
+                -- table.remove(_star, i)
+                if v.alpha < v.endAlpha then
+                    v.alpha = v.alpha - 0.05
+                end
+            end
+            if v.y < 0 then
+                table.remove(_star, i)
+            end
+            v.y = v.y + v.speed * dt
+            v.angle = v.angle + v.angleSpeed * dt
+            if v.y < love.graphics.getHeight() / 2 then
+                if v.alpha < v.endAlpha then
+                    v.alpha = v.alpha + 0.05
+                end
+            end
+        end
+    end
+end
+
+function _addStar()
+    table.insert(_star, {
         x = love.math.random(0, love.graphics.getWidth()),
-        y = 0,
+        y = 10,
         speed = love.math.random(100, 200),
         colour = {love.math.random(0, 255) / 255, love.math.random(0, 255) / 255, love.math.random(0, 255) / 255},
         angle = 0,
         radius = love.math.random(5, 15),
         angleSpeed = love.math.random(-5, 5),
-        alpha = math.random(0.5, 1)
+        alpha = 0,
+        endAlpha = math.random(0.5, 1)
     })
-    for i, v in ipairs(star) do
-        if v.y > love.graphics.getHeight() then
-            table.remove(star, i)
-        end
-        if v.x < 0 then
-            table.remove(star, i)
-        end
-        if v.x > love.graphics.getWidth() then
-            table.remove(star, i)
-        end
-        if v.y < 0 then
-            table.remove(star, i)
-        end
-        v.y = v.y + v.speed * dt
-        v.angle = v.angle + v.angleSpeed * dt
-    end
+end
+
+function stars:init(angleSpeed)
+    Timer.after(2, function()
+        going = true
+    end)
 end
 
 function stars:draw()
-    for i, v in ipairs(star) do
+    for i, v in ipairs(_star) do
         love.graphics.setColor(1, 1, 1, v.alpha)
-        drawRotatedRectangle("fill", v.x, v.y, v.radius, v.radius, v.angle)
+        _drawRotatedRectangle("fill", v.x, v.y, v.radius, v.radius, v.angle)
     end
-    -- Components.loading:draw()
 end
 
-function stars:clear()
-    star = {}
+local function _clear()
+    _star = {}
 end
 
-function drawRotatedRectangle(mode, x, y, width, height, angle)
+function _drawRotatedRectangle(mode, x, y, width, height, angle)
     love.graphics.push()
     love.graphics.translate(x, y)
     love.graphics.rotate(angle)

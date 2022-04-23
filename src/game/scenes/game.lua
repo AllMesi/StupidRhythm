@@ -19,7 +19,7 @@ end
 
 function game:enter()
     local x = os.clock()
-    camera = Camera(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+    camera = Camera()
     GameConfig.songSettings.circleStrum1.x = love.graphics.getWidth() / 2 - 110
     GameConfig.songSettings.circleStrum2.x = love.graphics.getWidth() / 2 - 110 + 70
     GameConfig.songSettings.circleStrum3.x = love.graphics.getWidth() / 2 - 110 + 70 + 70
@@ -372,7 +372,7 @@ function game:resize()
             bg_image:getWidth(),
             bg_image:getHeight()
     )
-    camera = Camera(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+    camera = Camera()
     if GameConfig.songSettings.upscroll1 then
         GameConfig.songSettings.circleStrum1.y = 50
     else

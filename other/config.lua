@@ -68,7 +68,7 @@ return {
     },
     fps = 240, -- ultra disables vsync if set to 0 lol
     vsync = false, -- disables fps option above if true
-    customCursor = false, -- makes custom cursor
+    customCursor = true, -- makes custom cursor
     grabCursor = false, -- grabs the cursor in the window
     windowIcon = "images/icon.png", -- that image you see on the window
     title = "Default Title", -- the title of the window

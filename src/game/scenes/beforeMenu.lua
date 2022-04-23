@@ -82,6 +82,13 @@ function beforeMenu:enter()
             song = "A Fool Moon Night"
             bpm = 138
             Scene.switch(Scenes.game)
+            for i = 1, 10 do
+                wi.setMode(1280, 720, {
+                    vsync = false,
+                    resizable = true
+                })
+            end
+            love.window.maximize()
         end)
     end
 end

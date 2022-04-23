@@ -9,8 +9,11 @@ local settingsMenu = {
 }
 
 function menu:enter()
-
+    Timer.after(1, function()
+        Components.stars:init()
+    end)
 end
+
 function menu:draw()
     Components.stars:draw()
     Components.button:draw()
