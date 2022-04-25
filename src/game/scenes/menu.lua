@@ -9,8 +9,10 @@ local settingsMenu = {
 }
 
 function menu:enter()
-    Timer.after(1, function()
-        Components.stars:init()
+    Components.button:clear()
+    Components.stars:init()
+    Components.button:new("Song Select", function()
+        Scene.switch(Scenes.songSelect)
     end)
 end
 

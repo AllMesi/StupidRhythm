@@ -6,9 +6,6 @@ local mouse = {
 }
 
 local showingLogs = true
-
-local updating = true
-
 local updateWhileShowingLogs = false
 
 function love.load()
@@ -21,15 +18,16 @@ function love.load()
 
     love.graphics.setDefaultFilter("nearest", "nearest")
 
+    
+    love.graphics.setDefaultFilter(CONFIG.graphics.filter.down, CONFIG.graphics.filter.up,
+    CONFIG.graphics.filter.anisotropy)
+    fps(true, GameConfig.fps)
+    
     love.window.setMode(1280, 720, {
-        vsync = false,
+        vsync = GameConfig.vsync,
         resizable = true,
         borderless = false
     })
-
-    love.graphics.setDefaultFilter(CONFIG.graphics.filter.down, CONFIG.graphics.filter.up,
-        CONFIG.graphics.filter.anisotropy)
-    fps(true, GameConfig.fps)
 
     window = {
         translate = {
@@ -67,9 +65,6 @@ function love.update(dt)
         love.window.setTitle(GameConfig.title .. StupidRhythm.addToTitle .. " | " .. fps(false))
     else
         love.window.setTitle(GameConfig.title)
-    end
-    if not updating then
-        return
     end
     Flux.update(dt)
     Timer.update(dt)
@@ -153,9 +148,6 @@ function love.draw()
 end
 
 function love.keypressed(key, code, isRepeat)
-    if not updating then
-        return
-    end
     if not showingLogs then
         if not RELEASE and code == CONFIG.debug.key then
             CONFIG.DEBUG = not DEBUG
@@ -163,7 +155,7 @@ function love.keypressed(key, code, isRepeat)
         if key == "6" then
             screenshot()
         end
-        if key == "d" then
+        if key == "-" then
             window.zoom = 1
             window.translate.x = 0
             window.translate.y = 0
@@ -185,7 +177,7 @@ function love.keypressed(key, code, isRepeat)
                 wasMaximized = false
             end
             wi.setMode(1280, 720, {
-                vsync = false,
+                vsync = GameConfig.vsync,
                 resizable = true
             })
             if wasMaximized then
@@ -200,7 +192,7 @@ function love.keypressed(key, code, isRepeat)
             })
             if not love.window.getFullscreen() then
                 wi.setMode(1280, 720, {
-                    vsync = false,
+                    vsync = GameConfig.vsync,
                     resizable = true
                 })
                 love.window.maximize()
@@ -213,9 +205,6 @@ function love.keypressed(key, code, isRepeat)
 end
 
 function love.wheelmoved(x, y)
-    if not updating then
-        return
-    end
     local mx = love.mouse.getX()
     local my = love.mouse.getY()
     if not (y == 0) then -- mouse wheel moved up or down

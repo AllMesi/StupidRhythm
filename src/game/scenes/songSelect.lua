@@ -5,10 +5,7 @@ function songSelect:enter()
     local files = love.filesystem.getDirectoryItems("songs")
     for k, file in ipairs(files) do
         Components.button:new(file, function()
-            Components.stars:clear()
-            song = file
-            MenuSong:stop()
-            Scene.switch(Scenes.game)
+            startGame(file)
         end)
     end
     Components.button:new("back", function()

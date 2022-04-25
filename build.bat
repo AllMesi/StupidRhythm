@@ -1,5 +1,11 @@
 @echo off
 rmdir build /S /Q
+mkdir build
+mkdir build\bin
+mkdir build\bin\exe
+mkdir build\bin\exe\x32
+mkdir build\bin\exe\x64
+mkdir build\bin\love
 mkdir tmp
 curl -o love2d.zip https://github.com/love2d/love/releases/download/11.4/love-11.4-win64.zip -L
 curl -o love2dx32.zip https://github.com/love2d/love/releases/download/11.4/love-11.4-win32.zip -L
@@ -10,12 +16,6 @@ rename tmp\love-11.4-win32 love2dx32
 del love2d.zip
 del love2dx32.zip
 other\7z a -tzip StupidRhythm.love .\src\*
-mkdir build
-mkdir build\bin
-mkdir build\bin\exe
-mkdir build\bin\exe\x32
-mkdir build\bin\exe\x64
-mkdir build\bin\love
 copy /b tmp\love2d\love.exe+StupidRhythm.love build\bin\exe\x64\StupidRhythm.exe
 copy /b tmp\love2dx32\love.exe+StupidRhythm.love build\bin\exe\x32\StupidRhythm.exe
 xcopy tmp\love2d\*.dll build\bin\exe\x64 /E /Y

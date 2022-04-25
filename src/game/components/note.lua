@@ -27,36 +27,38 @@ function note:spawnNote(row, offset)
     end
 end
 
-function note:spawnSliderNote(row, time)
-    Timer.during(time, function()
-        local sliderID = #noteSliderRow1 + 1
-        local sliderID2 = #noteSliderRow2 + 1
-        local sliderID3 = #noteSliderRow3 + 1
-        local sliderID4 = #noteSliderRow4 + 1
-        if row == 1 then
-            noteSliderRow1[sliderID] = {
-                x = GameConfig.songSettings.circleStrum1.x,
-                y = GameConfig.songSettings.circleStrum1.y - GameConfig.songSettings.noteSpeed1
-            }
-        end
-        if row == 2 then
-            noteSliderRow2[sliderID2] = {
-                x = GameConfig.songSettings.circleStrum2.x,
-                y = GameConfig.songSettings.circleStrum2.y - GameConfig.songSettings.noteSpeed2
-            }
-        end
-        if row == 3 then
-            noteSliderRow3[sliderID3] = {
-                x = GameConfig.songSettings.circleStrum3.x,
-                y = GameConfig.songSettings.circleStrum3.y - GameConfig.songSettings.noteSpeed3
-            }
-        end
-        if row == 4 then
-            noteSliderRow4[sliderID4] = {
-                x = GameConfig.songSettings.circleStrum4.x,
-                y = GameConfig.songSettings.circleStrum4.y - GameConfig.songSettings.noteSpeed4
-            }
-        end
+function note:spawnSliderNote(row, time, offset)
+    Timer.after(offset / 1000, function()
+        Timer.during(time, function()
+            local sliderID = #noteSliderRow1 + 1
+            local sliderID2 = #noteSliderRow2 + 1
+            local sliderID3 = #noteSliderRow3 + 1
+            local sliderID4 = #noteSliderRow4 + 1
+            if row == 1 then
+                noteSliderRow1[sliderID] = {
+                    x = GameConfig.songSettings.circleStrum1.x,
+                    y = GameConfig.songSettings.circleStrum1.y - GameConfig.songSettings.noteSpeed1
+                }
+            end
+            if row == 2 then
+                noteSliderRow2[sliderID2] = {
+                    x = GameConfig.songSettings.circleStrum2.x,
+                    y = GameConfig.songSettings.circleStrum2.y - GameConfig.songSettings.noteSpeed2
+                }
+            end
+            if row == 3 then
+                noteSliderRow3[sliderID3] = {
+                    x = GameConfig.songSettings.circleStrum3.x,
+                    y = GameConfig.songSettings.circleStrum3.y - GameConfig.songSettings.noteSpeed3
+                }
+            end
+            if row == 4 then
+                noteSliderRow4[sliderID4] = {
+                    x = GameConfig.songSettings.circleStrum4.x,
+                    y = GameConfig.songSettings.circleStrum4.y - GameConfig.songSettings.noteSpeed4
+                }
+            end
+        end)
     end)
 end
 

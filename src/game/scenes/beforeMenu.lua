@@ -69,25 +69,11 @@ function beforeMenu:enter()
             if GameConfig.vsync then
                 love.window.setVSync(true)
             end
-            local files = getFiles('music')
-            for i, file in ipairs(files) do
-                if not love.filesystem.isDirectory(file) then
-                    if not string.find(file, ".lua") then
-                        music = LoveBPM.newTrack()
-                        music:load(file)
-                        music:play()
-                    end
-                end
-            end
-            song = "A Fool Moon Night"
-            bpm = 138
-            Scene.switch(Scenes.game)
-            for i = 1, 10 do
-                wi.setMode(1280, 720, {
-                    vsync = false,
-                    resizable = true
-                })
-            end
+            Timer.after(3, function()
+                song = "A Fool Moon Night"
+                bpm = 138
+                Scene.switch(Scenes.game)
+            end)
             love.window.maximize()
         end)
     end

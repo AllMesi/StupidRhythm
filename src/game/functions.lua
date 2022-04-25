@@ -7,9 +7,11 @@ function print(str)
     io.write("[" .. os.date("%H:%M:%S") .. "] " .. str .. "\n")
     table.insert(logs, "[" .. os.date("%H:%M:%S") .. "] " .. str)
     if not love.filesystem.getInfo("logfiles/StupidRhythm-" .. TimeGameOpened .. ".log") then
-        love.filesystem.write("logfiles/StupidRhythm-" .. TimeGameOpened .. ".log", "[" .. os.date("%H:%M:%S") .. "] " .. str)
+        love.filesystem.write("logfiles/StupidRhythm-" .. TimeGameOpened .. ".log",
+            "[" .. os.date("%H:%M:%S") .. "] " .. str)
     else
-        love.filesystem.append("logfiles/StupidRhythm-" .. TimeGameOpened .. ".log", "\n[" .. os.date("%H:%M:%S") .. "] " .. str)
+        love.filesystem.append("logfiles/StupidRhythm-" .. TimeGameOpened .. ".log",
+            "\n[" .. os.date("%H:%M:%S") .. "] " .. str)
     end
 end
 
@@ -62,7 +64,9 @@ function fps(set, fps)
 end
 
 function startGame(name)
+    Components.stars:uninit()
     song = name
+    MenuSong:stop()
     Scene.switch(Scenes.game)
 end
 
@@ -90,7 +94,7 @@ function love.graphics.roundrectangle(mode, x, y, w, h, rd, s)
     local rd = rd or math.min(w, h) / 4
     local s = s or 32
     local l = love.graphics.getLineWidth()
-    
+
     local corner = 1
     local function mystencil()
         love.graphics.setColor(255, 255, 255, 255)
@@ -107,7 +111,7 @@ function love.graphics.roundrectangle(mode, x, y, w, h, rd, s)
             love.graphics.rectangle("fill", x - l, y + rd, w + 2 * l, h - 2 * rd + l)
         end
     end
-    
+
     love.graphics.stencil(mystencil)
     love.graphics.setStencilTest("greater", 0)
     love.graphics.setColor(r, g, b, a)
@@ -149,7 +153,11 @@ end
 function math.round(num, decimals)
     decimals = math.pow(10, decimals or 0)
     num = num * decimals
-    if num >= 0 then num = math.floor(num + 0.5) else num = math.ceil(num - 0.5) end
+    if num >= 0 then
+        num = math.floor(num + 0.5)
+    else
+        num = math.ceil(num - 0.5)
+    end
     return num / decimals
 end
 

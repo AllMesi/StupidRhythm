@@ -26,6 +26,8 @@ DEBUG = not RELEASE
 
 appId = "956876051252920320"
 
+updating = true
+
 CONFIG = {
     FPS = 240,
     graphics = {

@@ -4,24 +4,19 @@ local _star = {}
 local going = false
 
 function stars:update(dt)
-    _addStar()
     if going then
+        _addStar()
         for i, v in ipairs(_star) do
-            if v.y > love.graphics.getHeight() then
-                -- table.remove(_star, i)
-                if v.alpha < v.endAlpha then
-                    v.alpha = v.alpha - 0.05
-                end
+            if v.y > love.graphics.getHeight() + 50 then
+                table.remove(_star, i)
             end
             if v.y < 0 then
                 table.remove(_star, i)
             end
             v.y = v.y + v.speed * dt
             v.angle = v.angle + v.angleSpeed * dt
-            if v.y < love.graphics.getHeight() / 2 then
-                if v.alpha < v.endAlpha then
-                    v.alpha = v.alpha + 0.05
-                end
+            if v.alpha < v.endAlpha then
+                v.alpha = v.alpha + 0.05
             end
         end
     end
@@ -47,6 +42,11 @@ function stars:init(angleSpeed)
     end)
 end
 
+function stars:uninit(angleSpeed)
+    going = false
+    _clear()
+end
+
 function stars:draw()
     for i, v in ipairs(_star) do
         love.graphics.setColor(1, 1, 1, v.alpha)
@@ -54,7 +54,7 @@ function stars:draw()
     end
 end
 
-local function _clear()
+function _clear()
     _star = {}
 end
 
