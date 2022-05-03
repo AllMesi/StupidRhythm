@@ -112,9 +112,9 @@ TimeGameOpened = os.time()
 Scenes = {
     game = require "game.scenes.game",
     menus = {
-        menu = require "game.Scenes.menus.menu",
-        options = require "game.Scenes.menus.options",
-        songSelect = require "game.Scenes.menus.songSelect"
+        menu = require "game.scenes.menus.menu",
+        options = require "game.scenes.menus.options",
+        songSelect = require "game.scenes.menus.songSelect"
     },
     beforeMenu = require "game.scenes.beforeMenu",
     charter = require "game.scenes.charter",

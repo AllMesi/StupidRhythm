@@ -12,7 +12,7 @@ local debugStuff = false
 function love.load(arg)
     love.filesystem.mount(love.filesystem.getSourceBaseDirectory(), "")
 
-    require "game.globals"
+    require "globals"
 
     GameConfig.loadFuncInMain(arg)
 
