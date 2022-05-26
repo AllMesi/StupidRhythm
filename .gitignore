@@ -1,5 +1,1 @@
-build/
-.vscode/
-.git/
-desktop.ini
-test/
+dist/
