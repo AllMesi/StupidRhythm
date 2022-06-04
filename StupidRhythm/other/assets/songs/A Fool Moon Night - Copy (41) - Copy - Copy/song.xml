@@ -1,0 +1,17 @@
+<Song>
+    <Settings bpm="138" name="A Fool Moon Night" noteoffset="0" />
+    <Chart>
+        <Note Time="0" Row="1" length="0" />
+        <Note Time="0" Row="2" length="0" />
+        <Note Time="0" Row="3" length="0" />
+        <Note Time="0" Row="4" length="0" />
+        <Note Time="100" Row="1" length="0" />
+        <Note Time="100" Row="2" length="0" />
+        <Note Time="100" Row="3" length="0" />
+        <Note Time="100" Row="4" length="0" />
+        <Note Time="200" Row="1" length="100" />
+        <Note Time="200" Row="2" length="100" />
+        <Note Time="200" Row="3" length="100" />
+        <Note Time="200" Row="4" length="100" />
+    </Chart>
+</Song>
