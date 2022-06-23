@@ -1,11 +1,13 @@
-local lmao = {}
+local chart = {}
+local line = {
+    y = 0
+}
+local yOffset = 0
 
-function lmao.preenter()
-    print("preenter")
+function chart.enter(songName, bpm)
+    love.graphics.setLineWidth(3)
 end
 
-function lmao.enter()
-    print("enter")
+function chart.update()
+    
 end
-
-return lmao

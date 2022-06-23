@@ -2,7 +2,13 @@ local oldlgsc = love.graphics.setColor
 local oldlggc = love.graphics.getColor
 local oldlgc = love.graphics.clear
 
--- ive made this because i 0-1 colour range
+local major, minor, revision, codename = love.getVersion()
+
+local soundsActive = {}
+
+tab = "    "
+
+-- did because i hate the 0-1 colour range
 
 function love.graphics.setColor(r, g, b, a)
     if not a then
@@ -16,6 +22,16 @@ function love.graphics.getColor()
     return r * 255, g * 255, b * 255, a * 255
 end
 
+function print(...)
+    love.filesystem.createDirectory("/logfiles/" .. gameStarted)
+    for i, v in ipairs({...}) do
+        io.write("[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
+        table.insert(logs, "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v))
+        love.filesystem.append("logfiles/" .. gameStarted .. "/log.log",
+            "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
+    end
+end
+
 function love.graphics.clear(r, g, b, a)
     if not a then
         a = 255
@@ -26,84 +42,79 @@ Flux = require "libs.flux"
 timer = require "libs.timer"
 stateManager = require "stateManager"
 camera = require "libs.camera"
-LoveLoader = require "libs.loveLoader"
-lovebpm = require "libs.lovebpm"
-bitser = require "libs.bitser"
-xml = require "libs.xml.xml"
 grid = require "gridBackground"
 discordRPC = require "libs.discordRPC"
-moonshine = require "libs.moonshine"
-
-love.filesystem.mount(love.filesystem.getSourceBaseDirectory(), "")
 
 local currentTime = 0
 
 screenshots = {}
 
-blur1, blur2 = love.graphics.newShader [[
-    vec4 effect(vec4 color, Image texture, vec2 vTexCoord, vec2 pixel_coords)
-    {
-        vec4 sum = vec4(0.0);
-        number blurSize = .5;
-
-        // take nine samples, with the distance blurSize between them
-        sum += texture2D(texture, vec2(vTexCoord.x - 4.0*blurSize, vTexCoord.y)) * 0.05;
-        sum += texture2D(texture, vec2(vTexCoord.x - 3.0*blurSize, vTexCoord.y)) * 0.09;
-        sum += texture2D(texture, vec2(vTexCoord.x - 2.0*blurSize, vTexCoord.y)) * 0.12;
-        sum += texture2D(texture, vec2(vTexCoord.x - blurSize, vTexCoord.y)) * 0.15;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;
-        sum += texture2D(texture, vec2(vTexCoord.x + blurSize, vTexCoord.y)) * 0.15;
-        sum += texture2D(texture, vec2(vTexCoord.x + 2.0*blurSize, vTexCoord.y)) * 0.12;
-        sum += texture2D(texture, vec2(vTexCoord.x + 3.0*blurSize, vTexCoord.y)) * 0.09;
-        sum += texture2D(texture, vec2(vTexCoord.x + 4.0*blurSize, vTexCoord.y)) * 0.05;
-
-        return sum;
-    }
-]], love.graphics.newShader [[
-    vec4 effect(vec4 color, Image texture, vec2 vTexCoord, vec2 pixel_coords)
-    {
-        vec4 sum = vec4(0.0);
-        number blurSize = .1;
-
-        // take nine samples, with the distance blurSize between them
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y - 4.0*blurSize)) * 0.05;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y - 3.0*blurSize)) * 0.09;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y - 2.0*blurSize)) * 0.12;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y- blurSize)) * 0.15;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y + blurSize)) * 0.15;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y + 2.0*blurSize)) * 0.12;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y + 3.0*blurSize)) * 0.09;
-        sum += texture2D(texture, vec2(vTexCoord.x, vTexCoord.y + 4.0*blurSize)) * 0.05;
-
-        return sum;
-    }
-]]
-
 local testingMode = false
 
-local canScreenshot = true
+wasScreenshot = false
+
+function love.getVersion()
+    return major .. "." .. minor
+end
 
 screenshot = {
     path = "screenshots",
     start = function(self)
-        canScreenshot = false
+        wasScreenshot = true
         currentTime = os.time()
         love.filesystem.createDirectory(self.path)
-        love.graphics.captureScreenshot(self.path .. "/screenshot-" .. currentTime .. ".png")
+        love.graphics
+            .captureScreenshot(self.path .. "/screenshot-" .. currentTime .. love.math.random(0, 100) .. ".png")
+        timer.after(0.1, function()
+            wasScreenshot = false
+        end)
     end
 }
 
 null = nil
 
-LoveTween = Flux
-LoveTimer = timer
-LoveStateManager = stateManager
-LoveCamera = camera
-LoveSave = bitser
+keybindsHaha = {}
 
-xmlhandler = require("libs.xml.xmlhandler.tree")
-xmlparser = xml.parser(xmlhandler)
+currentUser = "Guest"
+
+function saveGame(keybinds, vsync, pressType, autoPlay)
+    keybinds = keybinds or {"v", "b", "delete", "end"}
+    vsync = vsync or true
+    if vsync == true then
+        vsync = 1
+    else
+        vsync = 0
+    end
+    pressType = pressType or "none"
+    autoPlay = autoPlay or false
+    love.filesystem.write("config.txt",
+        "vs=" .. tostring(vsync) .. ",\nkb={\"" .. keybinds[1] .. "\",\"" .. keybinds[2] .. "\",\"" .. keybinds[3] ..
+            "\",\"" .. keybinds[4] .. "\"},\npt=\"" .. pressType .. "\",\nap=" .. tostring(autoPlay))
+end
+
+function setSave(keybindVar)
+    local code = loadstring("return {" .. love.filesystem.read("config.txt") .. "}")()
+    love.window.setVSync(code.vs)
+    keybindsHaha = code.kb
+end
+
+function readSave()
+    local code = loadstring("return {" .. love.filesystem.read("config.txt") .. "}")()
+    return code.kb, code.vs, code.pt, code.ap
+end
+
+function playSound(path)
+    for i, s in ipairs(soundsActive) do
+        if not s:isPlaying() then
+            love.audio.play(s)
+            return
+        end
+    end
+    table.insert(soundsActive, love.audio.newSource(path, 'static'))
+    love.audio.play(soundsActive[#soundsActive])
+end
+
+bruh = {}
 
 window = {
     translate = {
@@ -115,40 +126,27 @@ window = {
 dscale = 2 ^ (1 / 6)
 k = 0
 
-local cooldata = love.filesystem.read("Settings.xml")
-xmlparser:parse(cooldata)
-
-WindowWidth = xmlhandler.root.StupidRhythm.WindowSettings._attr.width
-WindowHeight = xmlhandler.root.StupidRhythm.WindowSettings._attr.height
-WindowTitle = xmlhandler.root.StupidRhythm.WindowSettings._attr.title
-KeyBinds = xmlhandler.root.StupidRhythm.GameSettings._attr.keys
-NoteSize = xmlhandler.root.StupidRhythm.GameSettings._attr.noteSize
-NoteSpeed = xmlhandler.root.StupidRhythm.GameSettings._attr.noteSpeed
-
-function chars(str)
-    strc = {}
-    for i = 1, #str do
-        table.insert(strc, string.sub(str, i, i))
+function reversedipairs(t)
+    local function reversedipairsiter(t, i)
+        i = i - 1
+        if i ~= 0 then
+            return i, t[i]
+        end
     end
-    return strc
+    return reversedipairsiter, t, #t + 1
 end
 
-function reversetable(t)
-    local n = #t
-    local i = 1
-    while i < n do
-        t[i], t[n] = t[n], t[i]
-        i = i + 1
-        n = n - 1
-    end
+function makeNewSong(name, bpm)
+    love.filesystem.createDirectory("songs/" .. name .. "/scripts")
+    love.filesystem.write("songs/" .. name .. "/.sr", "[\n    bpm=" .. bpm ..
+        ",\n    audio='',\n    chart=[\n        [0,1000,1000],[1,1000,1000],[2,1000,1000],[3,1000,1000]\n    ]\n]")
+    love.filesystem.write("songs/" .. name .. "/scripts/onBeat.lua", "")
+    love.filesystem.write("songs/" .. name .. "/scripts/onEnd.lua", "")
+    love.filesystem.write("songs/" .. name .. "/scripts/onStart.lua", "")
+    love.filesystem.write("songs/" .. name .. "/scripts/onStep.lua", "")
+    love.filesystem.write("songs/" .. name .. "/scripts/onUpdate.lua", "")
+    love.system.openURL("file://" .. love.filesystem.getSaveDirectory() .. "/songs/" .. name)
 end
-
-notekey1 = chars(KeyBinds)[1]
-notekey2 = chars(KeyBinds)[3]
-notekey3 = chars(KeyBinds)[5]
-notekey4 = chars(KeyBinds)[7]
-
-saveFile = "save.dat"
 
 function getFiles(rootPath, tree)
     tree = tree or {}
@@ -165,16 +163,19 @@ function getFiles(rootPath, tree)
     return tree
 end
 
+function getFileExtension(url)
+    return url:match"[^.]+$"
+end
+
 function love.graphics.linerectangle(x1, y2, x3, y4)
     love.graphics.line(x1, y2, x3, y2)
     love.graphics.line(x3, y2, x3, y4)
     love.graphics.line(x3, y4, x1, y4)
     love.graphics.line(x1, y4, x1, y2)
-    return x1, y2, x3, y4
 end
 
 function love.audio.getCurSourceTime(source)
-    local sourcetell = math.floor(source:tell())
+    local sourcetell = math.floor(source:getTime())
     local minutes = math.floor(sourcetell / 60)
     local seconds = sourcetell - (minutes * 60)
     if seconds < 10 then
@@ -184,13 +185,26 @@ function love.audio.getCurSourceTime(source)
 end
 
 function love.audio.getTotalSourceTime(source)
-    local sourcetell = math.floor(source:getDuration())
+    local sourcetell = math.floor(source:getTotalTime())
     local minutes = math.floor(sourcetell / 60)
     local seconds = sourcetell - (minutes * 60)
     if seconds < 10 then
         seconds = "0" .. seconds
     end
     return minutes .. ":" .. seconds
+end
+
+function love.audio.getFullSourceTime(source)
+    local sourcetell = math.floor(source:getTotalTime())
+    local sourcetell2 = math.floor(source:getTime())
+    local minutes = math.floor(sourcetell / 60)
+    local minutes2 = math.floor(sourcetell2 / 60)
+    local seconds = sourcetell - (minutes * 60)
+    local seconds2 = sourcetell2 - (minutes2 * 60)
+    if seconds < 10 then
+        seconds = "0" .. seconds
+    end
+    return minutes .. ":" .. seconds .. " / " .. minutes2 .. ":" .. seconds2
 end
 
 function OpenSaveDirectory()
@@ -227,7 +241,6 @@ states = {
     main = require "states.menus.menus",
     songSelect = require "states.menus.songSelect",
     options = require "states.menus.options",
-    savefile = require "states.menus.savefile",
     loading = require "states.loading",
     game = require "states.GAME.game",
     chartingeditor = require "states.GAME.chartingeditor"
@@ -239,16 +252,6 @@ curSong = {
 }
 
 logs = {}
-
-function print(...)
-    love.filesystem.createDirectory("/logfiles/" .. gameStarted)
-    for i, v in ipairs({...}) do
-        io.write("[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
-        table.insert(logs, "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v))
-        love.filesystem.append("logfiles/" .. gameStarted .. "/log.log",
-            "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
-    end
-end
 
 function OpenSaveDirectory()
     love.system.openURL("file://" .. love.filesystem.getSaveDirectory())

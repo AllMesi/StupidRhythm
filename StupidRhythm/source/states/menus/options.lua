@@ -3,18 +3,14 @@ local state = {}
 local y = 0
 local x = 0
 
-local selects = {"Toggle VSync - " .. tostring(love.window.getVSync()),
-                 "Toggle Fullscreen - " .. tostring(love.window.getFullscreen()), "Back"}
-local selectsExplain = {"More frames at the cost of stableness", "Fullscreen mode", "Go back to the main menu"}
+local utf8 = require "utf8"
+
+local selects = {"Toggle VSync - " .. tostring(love.window.getVSync()), "Back"}
+local selectsExplain = {"More frames at the cost of stableness", "Go back to the main menu"}
 local curSelect = 1
 
 function state.enter()
-    presence = {
-        state = "in game",
-        details = "in options menu",
-        startTimestamp = 0,
-        endTimestamp = os.time()
-    }
+    presence.details = "in options menu"
 end
 
 function state.update(dt)
@@ -29,8 +25,9 @@ function state.draw()
         else
             love.graphics.setColor(255, 255, 255)
         end
-        love.graphics.print(v, revamped50, 10, love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) *
-            (#selects - 1) / 2 + i * revamped50:getHeight(v))
+        love.graphics.print(v, revamped50, 10,
+            love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) * (#selects - 1) / 2 + i *
+                revamped50:getHeight(v) - revamped50:getHeight(v) / 2)
     end
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(),
@@ -57,32 +54,19 @@ function state.keypressed(key)
     end
     if key == "return" or key == "kpenter" then
         if curSelect == 1 then
-            settings = bitser.loads(love.filesystem.read(saveFile))
-            love.window.setVSync(not settings.vsync)
-            local settingsSave = bitser.dumps({
-                fullscreen = settings.fullscreen,
-                vsync = not settings.vsync,
-                bot = settings.bot
-            })
-            love.filesystem.write(saveFile, settingsSave)
+            local _, _2, _3, _4 = readSave()
+            local newVSync = not love.window.getVSync()
+            if newVSync == 1 then
+                newVSync = true
+            else
+                newVSync = false
+            end
+            saveGame(_, newVSync, _3, _4)
+            setSave(keybindsHaha)
         elseif curSelect == 2 then
-            settings = bitser.loads(love.filesystem.read(saveFile))
-            love.window.setFullscreen(not settings.fullscreen)
-            local settingsSave = bitser.dumps({
-                fullscreen = not settings.fullscreen,
-                vsync = settings.vsync,
-                bot = settings.bot
-            })
-            love.filesystem.write(saveFile, settingsSave)
-        elseif curSelect == 3 then
             stateManager:switch("main", true)
         end
-        selects = {"Toggle VSync - " .. tostring(love.window.getVSync()),
-                   "Toggle Fullscreen - " .. tostring(love.window.getFullscreen()), "Back"}
-    end
-    if key == "f11" then
-        selects = {"Toggle VSync - " .. tostring(love.window.getVSync()),
-                   "Toggle Fullscreen - " .. tostring(love.window.getFullscreen()), "Back"}
+        selects = {"Toggle VSync - " .. tostring(love.window.getVSync()), "Back"}
     end
 end
 

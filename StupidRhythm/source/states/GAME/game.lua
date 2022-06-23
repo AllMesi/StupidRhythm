@@ -1,555 +1,912 @@
 local state = {}
-
 local noteRow1 = {}
 local noteRow2 = {}
 local noteRow3 = {}
 local noteRow4 = {}
-
-local noteTimers = {}
-
-local ratings = {}
-
-local strumSettings = {
-    s1 = {
-        y = 100,
-        realy = love.graphics.getHeight() - 100,
-        x = love.graphics.getWidth() / 2 - NoteSize * 2,
-        size = NoteSize,
-        texture = love.graphics.newImage('assets/images/notes/notekey.png')
+local notesToBeSpawned = {}
+local Conductor = require 'states.GAME.conductor'
+local music
+local interval = 1
+local loaded = false
+local spawnOffset = 0
+local strumLine = {
+    strum1 = {
+        y = 85,
+        lasty = 0,
+        x = 100,
+        lastx = 0,
+        size = 35,
+        overlayAlpha = 0,
+        bpTimer = 0.1,
+        sizeOff = 0
     },
-    s2 = {
-        y = 100,
-        realy = love.graphics.getHeight() - 100,
-        x = love.graphics.getWidth() / 2 - NoteSize,
-        size = NoteSize,
-        overlayalpha = 0,
-        texture = love.graphics.newImage('assets/images/notes/notekey.png')
+    strum2 = {
+        y = 85,
+        lasty = 0,
+        x = 200,
+        lastx = 0,
+        size = 35,
+        overlayAlpha = 0,
+        bpTimer = 0.1,
+        sizeOff = 0
     },
-    s3 = {
-        y = 100,
-        realy = love.graphics.getHeight() - 100,
-        x = love.graphics.getWidth() / 2,
-        size = NoteSize,
-        overlayalpha = 0,
-        texture = love.graphics.newImage('assets/images/notes/notekey.png')
+    strum3 = {
+        y = 85,
+        lasty = 0,
+        x = 300,
+        lastx = 0,
+        size = 35,
+        overlayAlpha = 0,
+        bpTimer = 0.1,
+        sizeOff = 0
     },
-    s4 = {
-        y = 100,
-        realy = love.graphics.getHeight() - 100,
-        x = love.graphics.getWidth() / 2 + NoteSize,
-        size = NoteSize,
-        overlayalpha = 0,
-        texture = love.graphics.newImage('assets/images/notes/notekey.png')
+    strum4 = {
+        y = 85,
+        lasty = 0,
+        x = 400,
+        lastx = 0,
+        size = 35,
+        overlayAlpha = 0,
+        bpTimer = 0.1,
+        sizeOff = 0
     }
 }
-
-local amountOfNotes = 0
-local amountOfNotesLeftToSpawn = 0
-
-local notes
-local charts = {}
-
-local speed = 1
-
-local songname = "k;lasd;klsad;lkads;lkads;lk"
-local songbpm = 69420
-local songoffset = 0
-
-local songs = {}
-
-local firstNote = true
-
-local spawnArea = 0
-
-function state.preenter()
-    love.keyboard.setKeyRepeat(false)
-end
-
-function state.enter()
-    noteCam1.x = 0
-    noteCam2.x = 0
-    noteCam3.x = 0
-    noteCam4.x = 0
-    local files = love.filesystem.getDirectoryItems("assets/songs/" .. curSong.name .. "/audios")
-    local cooldata = love.filesystem.read("assets/songs/" .. curSong.name .. "/song.xml")
-    for k, file in ipairs(files) do
-        if file:find("ogg") then
-            table.insert(songs, love.audio
-                .newSource("assets/songs/" .. curSong.name .. "/audios/" .. file, "static"))
-            test, test2 = love.audio.getCurSourceTime(songs[k]), love.audio.getTotalSourceTime(songs[k])
-        end
-    end
-    for i, v in ipairs(songs) do
-        v:play()
-    end
-    -- parseXMLAndSpawnNotes(cooldata)
-    -- timer.every(1, function()
-    --     for i = 1, 10000 do
-    --         table.insert(noteRow1, {
-    --             x = 30 * 2,
-    --             y = -i / 16,
-    --             size = 30,
-    --             alpha = 0,
-    --             holdregister = true,
-    --             texture = images.n1
-    --         })
-    --     end
-    --     reversetable(noteRow1)
-    -- end)
-    timer.every(5, function()
-        for i = 1, 100000 do
-            table.insert(noteRow2, {
-                x = 60 * 2,
-                y = -i / 16,
-                size = 30,
-                alpha = 0,
-                holdregister = true,
-                texture = images.n2
-            })
-        end
-        reversetable(noteRow2)
-    end)
-    files = nil
-    cooldata = nil
-end
-
-function state.draw()
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.print("Song: " .. songname .. "\nBPM: " .. songbpm,
-        love.graphics.getWidth() - revamped12:getWidth("Song: " .. songname .. "\nBPM: " .. songbpm), 0)
-
-    noteCam1:attach()
-    love.graphics.draw(strumSettings.s1.texture, strumSettings.s1.x, love.graphics.getHeight() - strumSettings.s1.y, 0,
-        noteSizeK1X, noteSizeK1Y)
-    love.graphics.setColor(255, 255, 255, strumSettings.s1.overlayalpha)
-    love.graphics.draw(images.nko, strumSettings.s1.x, love.graphics.getHeight() - strumSettings.s1.y, 0, noteSizeKO1X,
-        noteSizeKO1Y)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.rectangle("line", strumSettings.s1.x, love.graphics.getHeight() - strumSettings.s1.y, 30, 30)
-    for i, v in ipairs(noteRow1) do
-        if v.y > spawnArea and v.y < love.graphics.getHeight() then
-            love.graphics.draw(v.texture, v.x, v.y, 0, noteSize1X, noteSize1Y)
-        end
-    end
-    noteCam1:detach()
-
-    noteCam2:attach()
-    love.graphics.draw(strumSettings.s2.texture, strumSettings.s2.x, love.graphics.getHeight() - strumSettings.s2.y, 0,
-        noteSizeK2X, noteSizeK2Y)
-    love.graphics.setColor(255, 255, 255, strumSettings.s2.overlayalpha)
-    love.graphics.draw(images.nko, strumSettings.s2.x, love.graphics.getHeight() - strumSettings.s2.y, 0, noteSizeKO2X,
-        noteSizeKO2Y)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.rectangle("line", strumSettings.s2.x, love.graphics.getHeight() - strumSettings.s2.y, 30, 30)
-    for i, v in ipairs(noteRow2) do
-        if v.y > spawnArea and v.y < love.graphics.getHeight() then
-            love.graphics.draw(v.texture, v.x, v.y, 0, noteSize2X, noteSize2Y)
-        end
-    end
-    noteCam2:detach()
-
-    noteCam3:attach()
-    love.graphics.draw(strumSettings.s3.texture, strumSettings.s3.x, love.graphics.getHeight() - strumSettings.s3.y, 0,
-        noteSizeK3X, noteSizeK3Y)
-
-    love.graphics.setColor(255, 255, 255, strumSettings.s3.overlayalpha)
-    love.graphics.draw(images.nko, strumSettings.s3.x, love.graphics.getHeight() - strumSettings.s3.y, 0, noteSizeKO3X,
-        noteSizeKO3Y)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.rectangle("line", strumSettings.s3.x, love.graphics.getHeight() - strumSettings.s3.y, 30, 30)
-    for i, v in ipairs(noteRow3) do
-        if v.y > spawnArea and v.y < love.graphics.getHeight() then
-            love.graphics.draw(v.texture, v.x, v.y, 0, noteSize3X, noteSize3Y)
-        end
-    end
-    noteCam3:detach()
-
-    noteCam4:attach()
-    love.graphics.draw(strumSettings.s4.texture, strumSettings.s4.x, love.graphics.getHeight() - strumSettings.s4.y, 0,
-        noteSizeK4X, noteSizeK4Y)
-    love.graphics.setColor(255, 255, 255, strumSettings.s4.overlayalpha)
-    love.graphics.draw(images.nko, strumSettings.s4.x, love.graphics.getHeight() - strumSettings.s4.y, 0, noteSizeKO4X,
-        noteSizeKO4Y)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.rectangle("line", strumSettings.s4.x, love.graphics.getHeight() - strumSettings.s4.y, 30, 30)
-    for i, v in ipairs(noteRow4) do
-        if v.y > spawnArea and v.y < love.graphics.getHeight() then
-            love.graphics.draw(v.texture, v.x, v.y, 0, noteSize3X, noteSize4Y)
-        end
-    end
-    noteCam4:detach()
-
-    love.graphics.print("Amount of notes: " .. tostring(amountOfNotes) .. "\nAmount of notes left to spawn: " ..
-                            tostring(amountOfNotesLeftToSpawn) .. "\nSong Offset: " .. tostring(songoffset) ..
-                            "\nTime: " .. tostring(test) .. " / " .. tostring(test2) .. "\nSpeed: " ..
-                            tostring(math.floor(speed * 100)) .. "%", 100, 100)
-
-    -- love.graphics.line(love.graphics.getWidth() / 2, 0, love.graphics.getWidth() / 2, love.graphics.getHeight())
-
-    for i, v in ipairs(ratings) do
-        love.graphics.setColor(v.colour.r, v.colour.g, v.colour.b)
-        love.graphics.print(v.text, v.x, v.y)
-        love.graphics.setColor(255, 255, 255)
-    end
-
-    love.graphics.line(0, spawnArea, love.graphics.getWidth(), spawnArea)
-end
+local nameOfSongLmao = ""
+local keys = {}
+local cameraa = {
+    zoom = 1
+}
+local strumTime = 0
+local songSpeed = 1
+local autoPlay = false
+local score = 0
+local totalNotesHit = 0
+local totalNotesMissed = 0
+local combo = 0
+local circleSegments = 400
+local _, _2, notePressType, auto
+local playFieldCam = camera()
+local sandbox = require 'states.GAME.sandbox'
+local script
+local error = {
+    isShowing = false,
+    message = ""
+}
 
 function state.exit()
-    test, test2 = nil, nil
-end
-
-function state.update(dt)
-    if amountOfNotes >= 60000 then
-        spawnArea = amountOfNotes * 0.0005
-    end
-    if songs[1]:isPlaying() then
-        if love.keyboard.isDown(notekey1) then
-            strumSettings.s1.overlayalpha = 255
-            for i, v in ipairs(noteRow1) do
-                if v.y > love.graphics.getHeight() - strumSettings.s1.y and v.holdregister then
-                    table.remove(noteRow1, i)
-                end
-            end
-        end
-        if love.keyboard.isDown(notekey2) then
-            strumSettings.s2.overlayalpha = 255
-            for i, v in ipairs(noteRow2) do
-                if v.y > love.graphics.getHeight() - strumSettings.s2.y and v.holdregister then
-                    table.remove(noteRow2, i)
-                end
-            end
-        end
-        if love.keyboard.isDown(notekey3) then
-            strumSettings.s3.overlayalpha = 255
-            for i, v in ipairs(noteRow3) do
-                if v.y > love.graphics.getHeight() - strumSettings.s3.y and v.holdregister then
-                    table.remove(noteRow3, i)
-                end
-            end
-        end
-        if love.keyboard.isDown(notekey4) then
-            strumSettings.s4.overlayalpha = 255
-            for i, v in ipairs(noteRow4) do
-                if v.y > love.graphics.getHeight() - strumSettings.s4.y and v.holdregister then
-                    table.remove(noteRow4, i)
-                end
-            end
-        end
-        if strumSettings.s1.overlayalpha > 0 then
-            strumSettings.s1.overlayalpha = strumSettings.s1.overlayalpha - dt * 1000
-        end
-        if strumSettings.s2.overlayalpha > 0 then
-            strumSettings.s2.overlayalpha = strumSettings.s2.overlayalpha - dt * 1000
-        end
-        if strumSettings.s3.overlayalpha > 0 then
-            strumSettings.s3.overlayalpha = strumSettings.s3.overlayalpha - dt * 1000
-        end
-        if strumSettings.s4.overlayalpha > 0 then
-            strumSettings.s4.overlayalpha = strumSettings.s4.overlayalpha - dt * 1000
-        end
-        for i, v in ipairs(songs) do
-            test, test2 = love.audio.getCurSourceTime(songs[i]), love.audio.getTotalSourceTime(songs[i])
-            v:setPitch(speed)
-        end
-        for i, v in ipairs(ratings) do
-            v.y = v.y + dt * v.speed
-            v.speed = v.speed + dt * v.acceleration * speed
-            if v.y > love.graphics.getHeight() then
-                table.remove(ratings, i)
-            end
-        end
-        if love.keyboard.isDown("q") then
-            speed = speed - 0.01
-            if speed < 0.1 then
-                speed = 0.1
-            end
-        elseif love.keyboard.isDown("e") then
-            speed = speed + 0.01
-        end
-        amountOfNotes = #noteRow1 + #noteRow2 + #noteRow3 + #noteRow4
-        noteSize1X, noteSize1Y = getImageScaleForNewDimensions(images.n1, NoteSize, NoteSize)
-        noteSize2X, noteSize2Y = getImageScaleForNewDimensions(images.n2, NoteSize, NoteSize)
-        noteSize3X, noteSize3Y = getImageScaleForNewDimensions(images.n3, NoteSize, NoteSize)
-        noteSize4X, noteSize4Y = getImageScaleForNewDimensions(images.n4, NoteSize, NoteSize)
-        noteSizeK1X, noteSizeK1Y = getImageScaleForNewDimensions(images.nk, NoteSize, NoteSize)
-        noteSizeK2X, noteSizeK2Y = getImageScaleForNewDimensions(images.nk, NoteSize, NoteSize)
-        noteSizeK3X, noteSizeK3Y = getImageScaleForNewDimensions(images.nk, NoteSize, NoteSize)
-        noteSizeK4X, noteSizeK4Y = getImageScaleForNewDimensions(images.nk, NoteSize, NoteSize)
-        noteSizeKO1X, noteSizeKO1Y = getImageScaleForNewDimensions(images.nko, NoteSize, NoteSize)
-        noteSizeKO2X, noteSizeKO2Y = getImageScaleForNewDimensions(images.nko, NoteSize, NoteSize)
-        noteSizeKO3X, noteSizeKO3Y = getImageScaleForNewDimensions(images.nko, NoteSize, NoteSize)
-        noteSizeKO4X, noteSizeKO4Y = getImageScaleForNewDimensions(images.nko, NoteSize, NoteSize)
-        for i, v in ipairs(noteRow1) do
-            v.y = v.y + dt * NoteSpeed * speed
-            v.x = strumSettings.s1.x
-            if v.y > love.graphics.getHeight() + 200 then
-                table.remove(noteRow1, i)
-                if not v.holdregister then
-                    addRating("MISS!", love.graphics.getWidth() / 2 - noteCam1.x, {
-                        r = 255,
-                        g = 0,
-                        b = 0
-                    })
-                end
-            end
-        end
-        for i, v in ipairs(noteRow2) do
-            v.y = v.y + dt * NoteSpeed * speed
-            v.x = strumSettings.s2.x
-            if v.y > love.graphics.getHeight() + 200 then
-                table.remove(noteRow2, i)
-                if not v.holdregister then
-                    addRating("MISS!", love.graphics.getWidth() / 2 - noteCam2.x, {
-                        r = 255,
-                        g = 0,
-                        b = 0
-                    })
-                end
-            end
-        end
-        for i, v in ipairs(noteRow3) do
-            v.y = v.y + dt * NoteSpeed * speed
-            v.x = strumSettings.s3.x
-            if v.y > love.graphics.getHeight() + 200 then
-                table.remove(noteRow3, i)
-                if not v.holdregister then
-                    addRating("MISS!", love.graphics.getWidth() / 2 - noteCam3.x, {
-                        r = 255,
-                        g = 0,
-                        b = 0
-                    })
-                end
-            end
-        end
-        for i, v in ipairs(noteRow4) do
-            v.y = v.y + dt * NoteSpeed * speed
-            v.x = strumSettings.s4.x
-            if v.y > love.graphics.getHeight() + 200 then
-                table.remove(noteRow4, i)
-                if not v.holdregister then
-                    addRating("MISS!", love.graphics.getWidth() / 2 - noteCam4.x, {
-                        r = 255,
-                        g = 0,
-                        b = 0
-                    })
-                end
-            end
-        end
-        timer.update(dt)
-    end
-end
-
-function state.exit()
-    notes = nil
-    firstNote = true
+    collectgarbage()
+    noteRow1 = {}
+    noteRow2 = {}
+    noteRow3 = {}
+    noteRow4 = {}
+    error = {
+        isShowing = false,
+        message = ""
+    }
+    loaded = false
+    keys = nil
+    music = nil
     love.keyboard.setKeyRepeat(true)
 end
 
-function parseXMLAndSpawnNotes(xmldata)
-    xmlparser:parse(xmldata)
-    notes = xmlhandler.root.Song.Chart
-    songoffset = xmlhandler.root.Song.Settings._attr.noteoffset
-    songname = xmlhandler.root.Song.Settings._attr.name
-    songbpm = xmlhandler.root.Song.Settings._attr.bpm
-    if #notes.Note > 1 then
-        notes = notes.Note
+function state.enter(songName)
+    presence.details = "Playing: " .. songName
+    presence.state = "In Game"
+    if love.filesystem.getInfo("songs/" .. nameOfSongLmao .. "/scripts/onStart.lua") ~= nil then
+        local luaGlobalFunctions = loadstring(love.filesystem.read("states/GAME/luaGlobal.lua"))()
+        luaGlobalFunctions.elapsed = elapsed
+        local code = love.filesystem.read("songs/" .. nameOfSongLmao .. "/scripts/onStart.lua")
+        local ok, result = pcall(sandbox.run, code, {
+            env = luaGlobalFunctions
+        })
+        error.isShowing = not ok
+        error.message = result
+    end
+    noteRow1 = {}
+    noteRow2 = {}
+    noteRow3 = {}
+    noteRow4 = {}
+    loaded = true
+    Conductor.bpm = 100
+    Conductor.crochet = ((60 / Conductor.bpm) * 1000)
+    Conductor.stepCrochet = Conductor.crochet / 4
+    Conductor.songPosition = 0
+    Conductor.songPositionInBeats = 0
+    Conductor.songPositionInSteps = 0
+    Conductor.fakeCrochet = (60 / Conductor.bpm) * 1000
+    Conductor.totalLength = 0
+    _, _2, notePressType, auto = readSave()
+    keys = _
+    autoPlay = auto
+    local options = loadstring("return" ..
+                                   love.filesystem.read("songs/" .. songName .. "/.sr"):gsub("%[", "{"):gsub("%]", "}"))()
+    music = love.audio.newSource("songs/" .. songName .. "/" .. options.audio, "stream")
+    Conductor.changeBPM(options.bpm)
+    nameOfSongLmao = songName
+    music:play()
+    Conductor.totalLength = music:getDuration()
+    for i, v in ipairs(options.notes) do
+        spawnNote(v[1], v[2], v[3])
+    end
+    totalNotesMissed = 0
+    totalNotesHit = 0
+    combo = 0
+    score = 0
+    print("Playing: " .. songName, "BPM: " .. options.bpm)
+    love.keyboard.setKeyRepeat(false)
+    love.graphics.setLineWidth(3)
+end
+
+function state.draw()
+    if loaded then
+        gameCam:attach()
+        playFieldCam:attach()
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.circle("line", strumLine.strum1.x, strumLine.strum1.y,
+            strumLine.strum1.size + strumLine.strum1.sizeOff, circleSegments)
+        love.graphics.setColor(255, 255, 255, strumLine.strum1.overlayAlpha)
+        love.graphics.circle("fill", strumLine.strum1.x, strumLine.strum1.y,
+            strumLine.strum1.size + strumLine.strum1.sizeOff, circleSegments)
+        for i, v in reversedipairs(noteRow1) do
+            if v.y > -v.size and v.y < love.graphics.getHeight() + v.size then
+                love.graphics.setColor(255, 255, 255, v.alpha)
+                if not v.wasHit then
+                    if v.holdRegister then
+                        love.graphics.rectangle("fill", v.x - 30, v.y, 60, 10)
+                    else
+                        love.graphics.circle("fill", v.x, v.y, v.size, circleSegments)
+                        local r, g, b, a = love.graphics.getColor()
+                        love.graphics.setColor(0, 0, 255, a)
+                        love.graphics.circle("line", v.x, v.y, v.size, circleSegments)
+                        love.graphics.setColor(r, g, b, a)
+                    end
+                end
+            end
+        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print(string.upper(keys[1]), pixel12,
+            strumLine.strum1.x - pixel12:getWidth(string.upper(keys[1])) / 2,
+            strumLine.strum1.y + strumLine.strum1.size + 10)
+        love.graphics.circle("line", strumLine.strum2.x, strumLine.strum2.y,
+            strumLine.strum2.size + strumLine.strum2.sizeOff, circleSegments)
+        love.graphics.setColor(255, 255, 255, strumLine.strum2.overlayAlpha)
+        love.graphics.circle("fill", strumLine.strum2.x, strumLine.strum2.y,
+            strumLine.strum2.size + strumLine.strum2.sizeOff, circleSegments)
+        for i, v in reversedipairs(noteRow2) do
+            if v.y > -v.size and v.y < love.graphics.getHeight() + v.size then
+                love.graphics.setColor(255, 255, 255, v.alpha)
+                if not v.wasHit then
+                    if v.holdRegister then
+                        love.graphics.rectangle("fill", v.x - 30, v.y, 60, 10)
+                    else
+                        love.graphics.circle("fill", v.x, v.y, v.size, circleSegments)
+                        local r, g, b, a = love.graphics.getColor()
+                        love.graphics.setColor(0, 0, 255, a)
+                        love.graphics.circle("line", v.x, v.y, v.size, circleSegments)
+                        love.graphics.setColor(r, g, b, a)
+                    end
+                end
+            end
+        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print(string.upper(keys[2]), pixel12,
+            strumLine.strum2.x - pixel12:getWidth(string.upper(keys[2])) / 2,
+            strumLine.strum2.y + strumLine.strum2.size + 10)
+        love.graphics.circle("line", strumLine.strum3.x, strumLine.strum3.y,
+            strumLine.strum3.size + strumLine.strum3.sizeOff, circleSegments)
+        love.graphics.setColor(255, 255, 255, strumLine.strum3.overlayAlpha)
+        love.graphics.circle("fill", strumLine.strum3.x, strumLine.strum3.y,
+            strumLine.strum3.size + strumLine.strum3.sizeOff, circleSegments)
+        for i, v in reversedipairs(noteRow3) do
+            if v.y > -v.size and v.y < love.graphics.getHeight() + v.size then
+                love.graphics.setColor(255, 255, 255, v.alpha)
+                if v.wasHit then
+                    love.graphics.setColor(0, 0, 0, 0)
+                end
+                if v.wasMissed then
+                    love.graphics.setColor(255, 255, 255, 127.5)
+                end
+                if v.holdRegister then
+                    love.graphics.rectangle("fill", v.x - 30, v.y, 60, 10)
+                else
+                    love.graphics.circle("fill", v.x, v.y, v.size, circleSegments)
+                    local r, g, b, a = love.graphics.getColor()
+                    love.graphics.setColor(0, 0, 255, a)
+                    love.graphics.circle("line", v.x, v.y, v.size, circleSegments)
+                    love.graphics.setColor(r, g, b, a)
+                end
+            end
+        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print(string.upper(keys[3]), pixel12,
+            strumLine.strum3.x - pixel12:getWidth(string.upper(keys[3])) / 2,
+            strumLine.strum3.y + strumLine.strum3.size + 10)
+        love.graphics.circle("line", strumLine.strum4.x, strumLine.strum4.y,
+            strumLine.strum4.size + strumLine.strum4.sizeOff, circleSegments)
+        love.graphics.setColor(255, 255, 255, strumLine.strum4.overlayAlpha)
+        love.graphics.circle("fill", strumLine.strum4.x, strumLine.strum4.y,
+            strumLine.strum4.size + strumLine.strum4.sizeOff, circleSegments)
+        for i, v in reversedipairs(noteRow4) do
+            if v.y > -v.size and v.y < love.graphics.getHeight() + v.size then
+                love.graphics.setColor(255, 255, 255, v.alpha)
+                if not v.wasHit then
+                    if v.holdRegister then
+                        love.graphics.rectangle("fill", v.x - 30, v.y, 60, 10)
+                    else
+                        love.graphics.circle("fill", v.x, v.y, v.size, circleSegments)
+                        local r, g, b, a = love.graphics.getColor()
+                        love.graphics.setColor(0, 0, 255, a)
+                        love.graphics.circle("line", v.x, v.y, v.size, circleSegments)
+                        love.graphics.setColor(r, g, b, a)
+                    end
+                end
+            end
+        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print(string.upper(keys[4]), pixel12,
+            strumLine.strum4.x - pixel12:getWidth(string.upper(keys[4])) / 2,
+            strumLine.strum4.y + strumLine.strum4.size + 10)
+        love.graphics.linerectangle(strumLine.strum1.x - strumLine.strum1.size - 50, 0,
+            strumLine.strum4.x + strumLine.strum4.size + 50, love.graphics.getHeight())
+        playFieldCam:detach()
+        if autoPlay then
+            -- Thanks for the math psych engine
+            love.graphics.setColor(255, 255, 255, 255 - math.sin((math.pi * Conductor.songPosition)) * 255)
+            love.graphics.print("[AUTOPLAY]", pixel12,
+                love.graphics.getWidth() / 2 - pixel12:getWidth("[AUTOPLAY]") / 2, love.graphics.getHeight() / 1.5)
+        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print("Score: " .. score .. "\nTotal Notes Hit: " .. totalNotesHit .. "\nMisses: " ..
+                                totalNotesMissed .. "\nNote Parts: " .. #noteRow1 + #noteRow2 + #noteRow3 + #noteRow4,
+            pixel12, 0, love.graphics.getHeight() / 2)
+        gameCam:detach()
+        if error.isShowing then
+            love.graphics.setColor(255, 0, 0)
+            love.graphics.printf(error.message, 10, 10, love.graphics.getWidth() - music:getDuration() - 10)
+            love.graphics.setColor(255, 255, 255)
+        end
+        love.graphics
+            .rectangle("line", love.graphics.getWidth() - music:getDuration() - 10, 10, music:getDuration(), 30)
+        love.graphics.rectangle("fill", love.graphics.getWidth() - music:getDuration() - 10, 10, music:tell(), 30)
+        love.graphics.print(math.floor(music:tell()) .. " / " .. math.floor(music:getDuration()),
+            love.graphics.getWidth() - math.floor(music:getDuration()), 50)
+        if not music:isPlaying() then
+            love.graphics.setColor(0, 0, 0, 127.5)
+            love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+            love.graphics.setColor(255, 255, 255)
+            love.graphics.print("Paused", pixel12, love.graphics.getWidth() / 2 - pixel12:getWidth("Paused") / 2,
+                love.graphics.getHeight() / 2 - pixel12:getHeight("") / 2)
+        end
+    end
+end
+
+function state.update(elapsed)
+    if loaded then
+        local lastBeat = Conductor.songPositionInBeats
+        local lastStep = Conductor.songPositionInSteps
+        Conductor.songPosition = music:tell()
+        Conductor.songPositionInBeats = music:tell() / (60 / Conductor.bpm)
+        Conductor.songPositionInSteps = music:tell() / (60 / Conductor.bpm) * 4
+        if math.floor(Conductor.songPositionInSteps) ~= math.floor(lastStep) and
+            math.floor(Conductor.songPositionInSteps) % interval == 0 then
+            step()
+        end
+
+        if math.floor(Conductor.songPositionInBeats) ~= math.floor(lastBeat) and
+            math.floor(Conductor.songPositionInBeats) % interval == 0 then
+            beat()
+        end
+
+        if music:tell() >= music:getDuration() - 0.1 then
+            songEnd()
+        end
+        lastBeat = Conductor.songPositionInBeats
+        lastStep = Conductor.songPositionInSteps
     end
 
-    amountOfNotesLeftToSpawn = #notes
-
-    for i, p in pairs(notes) do
-        if p._attr.Row == "1" then
-            if firstNote then
-                firstNote = false
-            end
-            amountOfNotesLeftToSpawn = amountOfNotesLeftToSpawn - 1
-            if tonumber(p._attr.length) > 0 then
-                table.insert(noteRow1, {
-                    x = 30 * 2,
-                    y = -p._attr.Time,
-                    size = 30,
-                    alpha = 0,
-                    holdregister = false,
-                    texture = images.n1
-                })
-                for i = 1, p._attr.length do
-                    table.insert(noteRow1, {
-                        x = 30 * 2,
-                        y = -i,
-                        size = 30,
-                        alpha = 0,
-                        holdregister = true,
-                        texture = images.nl
-                    })
+    for i, v in ipairs(noteRow1) do
+        v.x = strumLine.strum1.x
+        v.y = strumLine.strum1.y - Conductor.songPosition * 1000 + v.time
+        if v.y > -strumLine.strum1.y - 1280 and v.y < strumLine.strum1.y + 1280 then
+            if autoPlay then
+                if v.y < strumLine.strum1.y then
+                    if v.canBeHit then
+                        v.wasHit = true
+                        score = score + 350
+                        totalNotesHit = totalNotesHit + 1
+                        strumLine.strum1.overlayAlpha = 255
+                        v.canBeHit = false
+                        if notePressType == "nofade" then
+                            strumLine.strum1.bpTimer = 0.1
+                        end
+                    end
                 end
-            else
-                table.insert(noteRow1, {
-                    x = 30 * 2,
-                    y = -p._attr.Time,
-                    size = 30,
-                    alpha = 0,
-                    holdregister = false,
-                    texture = images.n1
-                })
+            end
+            if v.y < strumLine.strum1.y - v.size * 4 and not v.wasHit then
+                if not v.wasMissed then
+                    score = score - 100
+                    totalNotesMissed = totalNotesMissed + 1
+                    v.wasMissed = true
+                    combo = 0
+                    v.canBeHit = false
+                end
+            end
+            if v.holdRegister then
+                if love.keyboard.isDown(keys[1]) then
+                    if v.canBeHit then
+                        if v.y < strumLine.strum1.y + 5 then
+                            v.wasHit = true
+                        end
+                    end
+                end
             end
         end
-        if p._attr.Row == "2" then
-            if firstNote then
-                firstNote = false
-            end
-            amountOfNotesLeftToSpawn = amountOfNotesLeftToSpawn - 1
-            table.insert(noteRow2, {
-                x = 60 * 2,
-                y = -p._attr.Time,
-                size = 30,
-                alpha = 0,
-                holdregister = false,
-                texture = images.n2
-            })
+        if v.y < -1280 then
+            table.remove(noteRow1, i)
         end
-        if p._attr.Row == "3" then
-            if firstNote then
-                firstNote = false
+        v.size = strumLine.strum1.size
+    end
+    for i, v in ipairs(noteRow2) do
+        v.x = strumLine.strum2.x
+        v.y = strumLine.strum2.y - Conductor.songPosition * 1000 + v.time
+        if v.y > -strumLine.strum2.y - 1280 and v.y < strumLine.strum2.y + 1280 then
+            if autoPlay then
+                if v.y < strumLine.strum2.y then
+                    if v.canBeHit then
+                        v.wasHit = true
+                        score = score + 350
+                        totalNotesHit = totalNotesHit + 1
+                        strumLine.strum2.overlayAlpha = 255
+                        v.canBeHit = false
+                    end
+                end
             end
-            amountOfNotesLeftToSpawn = amountOfNotesLeftToSpawn - 1
-            table.insert(noteRow3, {
-                x = 90 * 2,
-                y = -p._attr.Time,
-                size = 30,
-                alpha = 0,
-                holdregister = false,
-                texture = images.n3
-            })
+            if v.y < strumLine.strum2.y - v.size * 4 and not v.wasHit then
+                if not v.wasMissed then
+                    score = score - 100
+                    totalNotesMissed = totalNotesMissed + 1
+                    v.wasMissed = true
+                    combo = 0
+                    v.canBeHit = false
+                    strumLine.strum2.bpTimer = 0.1
+                end
+            end
         end
-        if p._attr.Row == "4" then
-            if firstNote then
-                firstNote = false
+        if v.holdRegister then
+            if love.keyboard.isDown(keys[2]) then
+                if v.canBeHit then
+                    if v.y < strumLine.strum2.y + 5 then
+                        v.wasHit = true
+                    end
+                end
             end
-            amountOfNotesLeftToSpawn = amountOfNotesLeftToSpawn - 1
-            table.insert(noteRow4, {
-                x = 120 * 2,
-                y = -p._attr.Time,
-                size = 30,
-                alpha = 0,
-                holdregister = false,
-                texture = images.n4
-            })
+        end
+        if v.y < -1280 then
+            table.remove(noteRow2, i)
+        end
+        v.size = strumLine.strum2.size
+    end
+    for i, v in ipairs(noteRow3) do
+        v.x = strumLine.strum3.x
+        v.y = strumLine.strum3.y - Conductor.songPosition * 1000 + v.time
+        if v.y > -strumLine.strum3.y - 1280 and v.y < strumLine.strum3.y + 1280 then
+            if autoPlay then
+                if v.y < strumLine.strum3.y then
+                    if v.canBeHit then
+                        v.wasHit = true
+                        score = score + 350
+                        totalNotesHit = totalNotesHit + 1
+                        strumLine.strum3.overlayAlpha = 255
+                        v.canBeHit = false
+                        if notePressType == "nofade" then
+                            strumLine.strum3.bpTimer = 0.1
+                        end
+                    end
+                end
+            end
+            if v.y < strumLine.strum3.y - v.size * 4 and not v.wasHit then
+                if not v.wasMissed then
+                    score = score - 100
+                    totalNotesMissed = totalNotesMissed + 1
+                    v.wasMissed = true
+                    combo = 0
+                    v.canBeHit = false
+                end
+            end
+        end
+        if v.holdRegister then
+            if love.keyboard.isDown(keys[3]) then
+                if v.canBeHit then
+                    if v.y < strumLine.strum3.y + 5 then
+                        v.wasHit = true
+                    end
+                end
+            end
+        end
+        if v.y < -1280 then
+            table.remove(noteRow3, i)
+        end
+        v.size = strumLine.strum3.size
+    end
+    for i, v in ipairs(noteRow4) do
+        v.x = strumLine.strum4.x
+        v.y = strumLine.strum4.y - Conductor.songPosition * 1000 + v.time
+        if v.y > -strumLine.strum4.y - 1280 and v.y < strumLine.strum4.y + 1280 then
+            if autoPlay then
+                if v.y < strumLine.strum4.y then
+                    if v.canBeHit then
+                        v.wasHit = true
+                        score = score + 350
+                        totalNotesHit = totalNotesHit + 1
+                        strumLine.strum4.overlayAlpha = 255
+                        v.canBeHit = false
+                        if notePressType == "nofade" then
+                            strumLine.strum4.bpTimer = 0.1
+                        end
+                    end
+                end
+            end
+            if v.y < strumLine.strum4.y - v.size * 4 and not v.wasHit then
+                if not v.wasMissed then
+                    score = score - 100
+                    totalNotesMissed = totalNotesMissed + 1
+                    v.wasMissed = true
+                    combo = 0
+                    v.canBeHit = false
+                end
+            end
+        end
+        if v.holdRegister then
+            if love.keyboard.isDown(keys[4]) then
+                if v.canBeHit then
+                    if v.y < strumLine.strum4.y + 5 then
+                        v.wasHit = true
+                    end
+                end
+            end
+        end
+        if v.y < -1280 then
+            table.remove(noteRow4, i)
+        end
+        v.size = strumLine.strum4.size
+    end
+    gameCam:zoomTo(cameraa.zoom)
+    gameCam:lookAt(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+    playFieldCam:lookAt(love.graphics.getWidth() / 2 - 500, love.graphics.getHeight() / 2)
+    songSpeed = songSpeed + 10 * elapsed
+    if loaded then
+        if music:isPlaying() then
+            for i = 1, 4 do
+                if notePressType == "nofade" then
+                    strumLine["strum" .. i].bpTimer = strumLine["strum" .. i].bpTimer - elapsed
+                    if strumLine["strum" .. i].bpTimer < 0 then
+                        strumLine["strum" .. i].bpTimer = 0.1
+                        strumLine["strum" .. i].overlayAlpha = 0
+                    end
+                end
+                -- strumLine["strum" .. i].y = math.sin(Conductor.songPosition + i) * 50 + 150
+                if love.filesystem.getInfo("songs/" .. nameOfSongLmao .. "/scripts/onUpdate.lua") ~= nil then
+                    local luaGlobalFunctions = loadstring(love.filesystem.read("states/GAME/luaGlobal.lua"))()
+                    local code = love.filesystem.read("songs/" .. nameOfSongLmao .. "/scripts/onUpdate.lua")
+                    local ok, result = pcall(sandbox.run, code, {
+                        env = luaGlobalFunctions,
+                        {
+                            curBeat = math.floor(Conductor.songPositionInBeats),
+                            curStep = math.floor(Conductor.songPositionInBeats),
+                            songPos = math.floor(Conductor.songPositionInBeats),
+                            elapsed = elapsed
+                        }
+                    })
+                    error.isShowing = not ok
+                    error.message = result
+                end
+            end
+            if notePressType == "fade" then
+                for i = 1, 4 do
+                    strumLine["strum" .. i].overlayAlpha = strumLine["strum" .. i].overlayAlpha - 510 * elapsed
+                end
+            elseif notePressType == "nofade" then
+                if not autoPlay then
+                    if love.keyboard.isDown(keys[1]) then
+                        strumLine.strum1.overlayAlpha = 255
+                    else
+                        strumLine.strum1.overlayAlpha = 0
+                    end
+                    if love.keyboard.isDown(keys[2]) then
+                        strumLine.strum2.overlayAlpha = 255
+                    else
+                        strumLine.strum2.overlayAlpha = 0
+                    end
+                    if love.keyboard.isDown(keys[3]) then
+                        strumLine.strum3.overlayAlpha = 255
+                    else
+                        strumLine.strum3.overlayAlpha = 0
+                    end
+                    if love.keyboard.isDown(keys[4]) then
+                        strumLine.strum4.overlayAlpha = 255
+                    else
+                        strumLine.strum4.overlayAlpha = 0
+                    end
+                end
+            elseif notePressType == "none" then
+                for i = 1, 4 do
+                    strumLine["strum" .. i].overlayAlpha = 0
+                end
+            end
         end
     end
 end
 
 function state.keypressed(key)
-    if key == "b" then
-        for i, v in ipairs(songs) do
-            v:stop()
+    if not autoPlay and music:isPlaying() then
+        if key == keys[1] then
+            strumLine.strum1.overlayAlpha = 255
+            for i, v in ipairs(noteRow1) do
+                if not v.holdRegister then
+                    if v.canBeHit and not v.wasMissed and not v.wasHit then
+                        if v.y < strumLine.strum1.y + 100 then
+                            v.wasHit = true
+                            score = score + 350
+                            totalNotesHit = totalNotesHit + 1
+                        end
+                    end
+                end
+            end
         end
-        songs = {}
-        noteRow1 = {}
-        noteRow2 = {}
-        noteRow3 = {}
-        noteRow4 = {}
-        firstNote = true
-        amountOfNotesLeftToSpawn = 0
-        amountOfNotes = 0
-        songoffset = 0
-        stateManager:setBackgroundColour({100, 100, 100}, 5)
-        stateManager:switch("chartingeditor", true)
-    end
-    if songs ~= {} then
-        if songs[1]:isPlaying() then
-            if key == notekey1 then
-                strumSettings.s1.overlayalpha = 255
-                for i, v in ipairs(noteRow1) do
-                    if v.y > love.graphics.getHeight() - strumSettings.s1.y - 70 then
-                        table.remove(noteRow1, i)
-                        addRating("COOL!", love.graphics.getWidth() / 2 - noteCam1.x, {
-                            r = 0,
-                            g = 255,
-                            b = 0
-                        })
+        if key == keys[2] then
+            strumLine.strum2.overlayAlpha = 255
+            for i, v in ipairs(noteRow2) do
+                if not v.holdRegister then
+                    if v.canBeHit and not v.wasMissed and not v.wasHit then
+                        if v.y < strumLine.strum2.y + 100 then
+                            v.wasHit = true
+                            score = score + 350
+                            totalNotesHit = totalNotesHit + 1
+                        end
                     end
                 end
             end
-            if key == notekey2 then
-                strumSettings.s2.overlayalpha = 255
-                for i, v in ipairs(noteRow2) do
-                    if v.y > love.graphics.getHeight() - strumSettings.s2.y - 70 then
-                        table.remove(noteRow2, i)
-                        addRating("COOL!", love.graphics.getWidth() / 2 - noteCam2.x, {
-                            r = 0,
-                            g = 255,
-                            b = 0
-                        })
+        end
+        if key == keys[3] then
+            strumLine.strum3.overlayAlpha = 255
+            for i, v in ipairs(noteRow3) do
+                if not v.holdRegister then
+                    if v.canBeHit and not v.wasMissed and not v.wasHit then
+                        if v.y < strumLine.strum3.y + 100 then
+                            v.wasHit = true
+                            score = score + 350
+                            totalNotesHit = totalNotesHit + 1
+                        end
                     end
                 end
             end
-            if key == notekey3 then
-                strumSettings.s3.overlayalpha = 255
-                for i, v in ipairs(noteRow3) do
-                    if v.y > love.graphics.getHeight() - strumSettings.s3.y - 70 then
-                        table.remove(noteRow3, i)
-                        addRating("COOL!", love.graphics.getWidth() / 2 - noteCam3.x, {
-                            r = 0,
-                            g = 255,
-                            b = 0
-                        })
+        end
+        if key == keys[4] then
+            strumLine.strum4.overlayAlpha = 255
+            for i, v in ipairs(noteRow4) do
+                if not v.holdRegister then
+                    if v.canBeHit and not v.wasMissed and not v.wasHit then
+                        if v.y < strumLine.strum4.y + 100 then
+                            v.wasHit = true
+                            score = score + 350
+                            totalNotesHit = totalNotesHit + 1
+                        end
                     end
                 end
-            end
-            if key == notekey4 then
-                strumSettings.s4.overlayalpha = 255
-                for i, v in ipairs(noteRow4) do
-                    if v.y > love.graphics.getHeight() - strumSettings.s4.y - 70 then
-                        table.remove(noteRow4, i)
-                        addRating("COOL!", love.graphics.getWidth() / 2 - noteCam4.x, {
-                            r = 0,
-                            g = 255,
-                            b = 0
-                        })
-                    end
-                end
-            end
-            if key == "w" then
-                speed = 1
             end
         end
     end
     if key == "space" then
-        for i, v in ipairs(songs) do
-            if v:isPlaying() then
-                v:pause()
-            else
-                v:play()
-            end
+        if music:isPlaying() then
+            music:pause()
+        else
+            music:play()
+        end
+    end
+    if key == "f9" then
+        music:stop()
+        stateManager:switch("game")
+    end
+    if key == "f7" then
+        music:stop()
+        stateManager:switch("chartingeditor", nameOfSongLmao, Conductor.bpm)
+    end
+    if key == "e" then
+        music:seek(music:tell() + 10)
+    end
+    if key == "q" then
+        if music:tell() - 10 < 0 then
+            music:seek(0)
+        else
+            music:seek(music:tell() - 10)
         end
     end
 end
 
-function addRating(text, x, colour)
-    table.insert(ratings, {
-        text = text,
-        colour = colour,
-        y = 0,
-        speed = 0,
-        acceleration = 1000,
-        x = x
-    })
+function spawnNote(row, time, length)
+    length = length or 0
+    if length > 0 then
+        if row == 0 then
+            table.insert(noteRow1, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 1 then
+            table.insert(noteRow2, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 2 then
+            table.insert(noteRow3, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 3 then
+            table.insert(noteRow4, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        end
+        for i = 1, length / 10 do
+            if row == 0 then
+                table.insert(noteRow1, {
+                    alpha = 255,
+                    x = -100,
+                    y = -100,
+                    time = time + i * 10,
+                    size = 0,
+                    tooLate = false,
+                    canBeHit = true,
+                    wasHit = false,
+                    wasMissed = false,
+                    holdRegister = true
+                })
+            elseif row == 1 then
+                table.insert(noteRow2, {
+                    alpha = 255,
+                    x = -100,
+                    y = -100,
+                    time = time + i * 10,
+                    size = 0,
+                    tooLate = false,
+                    canBeHit = true,
+                    wasHit = false,
+                    wasMissed = false,
+                    holdRegister = true
+                })
+            elseif row == 2 then
+                table.insert(noteRow3, {
+                    alpha = 255,
+                    x = -100,
+                    y = -100,
+                    time = time + i * 10,
+                    size = 0,
+                    tooLate = false,
+                    canBeHit = true,
+                    wasHit = false,
+                    wasMissed = false,
+                    holdRegister = true
+                })
+            elseif row == 3 then
+                table.insert(noteRow4, {
+                    alpha = 255,
+                    x = -100,
+                    y = -100,
+                    time = time + i * 10,
+                    size = 0,
+                    tooLate = false,
+                    canBeHit = true,
+                    wasHit = false,
+                    wasMissed = false,
+                    holdRegister = true
+                })
+            end
+        end
+    else
+        if row == 0 then
+            table.insert(noteRow1, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 1 then
+            table.insert(noteRow2, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 2 then
+            table.insert(noteRow3, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        elseif row == 3 then
+            table.insert(noteRow4, {
+                alpha = 255,
+                x = -100,
+                y = -100,
+                time = time,
+                size = 0,
+                tooLate = false,
+                canBeHit = true,
+                wasHit = false,
+                wasMissed = false,
+                holdRegister = false
+            })
+        end
+    end
 end
 
-function changeKeys(image1, image2, image3, image4)
-    local change1 = love.graphics.newImage(image1)
-    local change2 = love.graphics.newImage(image2)
-    local change3 = love.graphics.newImage(image3)
-    local change4 = love.graphics.newImage(image4)
-    noteSizeK1X, noteSizeK1Y = getImageScaleForNewDimensions(change1, NoteSize, NoteSize)
-    noteSizeK2X, noteSizeK2Y = getImageScaleForNewDimensions(change2, NoteSize, NoteSize)
-    noteSizeK3X, noteSizeK3Y = getImageScaleForNewDimensions(change3, NoteSize, NoteSize)
-    noteSizeK4X, noteSizeK4Y = getImageScaleForNewDimensions(change4, NoteSize, NoteSize)
-    strumSettings.s1.texture = change1
-    strumSettings.s2.texture = change2
-    strumSettings.s3.texture = change3
-    strumSettings.s4.texture = change4
+function state.resize(w, h)
+    strumLine = {
+        strum1 = {
+            y = 85,
+            lasty = 0,
+            x = 100,
+            lastx = 0,
+            size = strumLine.strum1.size,
+            overlayAlpha = strumLine.strum1.overlayAlpha,
+            bpTimer = 0.1,
+            sizeOff = 0
+        },
+        strum2 = {
+            y = 85,
+            lasty = 0,
+            x = 200,
+            lastx = 0,
+            size = strumLine.strum2.size,
+            overlayAlpha = strumLine.strum2.overlayAlpha,
+            bpTimer = 0.1,
+            sizeOff = 0
+        },
+        strum3 = {
+            y = 85,
+            lasty = 0,
+            x = 300,
+            lastx = 0,
+            size = strumLine.strum3.size,
+            overlayAlpha = strumLine.strum3.overlayAlpha,
+            bpTimer = 0.1,
+            sizeOff = 0
+        },
+        strum4 = {
+            y = 85,
+            lasty = 0,
+            x = 400,
+            lastx = 0,
+            size = strumLine.strum4.size,
+            overlayAlpha = strumLine.strum4.overlayAlpha,
+            bpTimer = 0.1,
+            sizeOff = 0
+        }
+    }
+end
+
+function noteHit(time, row)
+end
+
+function step()
+    if love.filesystem.getInfo("songs/" .. nameOfSongLmao .. "/scripts/onStep.lua") ~= nil then
+        local luaGlobalFunctions = loadstring(love.filesystem.read("states/GAME/luaGlobal.lua"))()
+        luaGlobalFunctions.curStep = math.floor(Conductor.songPositionInSteps)
+        local code = love.filesystem.read("songs/" .. nameOfSongLmao .. "/scripts/onStep.lua")
+        local ok, result = pcall(sandbox.run, code, {
+            env = luaGlobalFunctions,
+            {
+                curBeat = math.floor(Conductor.songPositionInBeats),
+                curStep = math.floor(Conductor.songPositionInBeats),
+                songPos = math.floor(Conductor.songPositionInBeats)
+            }
+        })
+        error.isShowing = not ok
+        error.message = result
+    end
+end
+
+function beat()
+    if love.filesystem.getInfo("songs/" .. nameOfSongLmao .. "/scripts/onBeat.lua") ~= nil then
+        local luaGlobalFunctions = loadstring(love.filesystem.read("states/GAME/luaGlobal.lua"))()
+        local code = love.filesystem.read("songs/" .. nameOfSongLmao .. "/scripts/onBeat.lua")
+        local ok, result = pcall(sandbox.run, code, {
+            env = luaGlobalFunctions,
+            {
+                curBeat = math.floor(Conductor.songPositionInBeats),
+                curStep = math.floor(Conductor.songPositionInBeats),
+                songPos = math.floor(Conductor.songPositionInBeats)
+            }
+        })
+        error.isShowing = not ok
+        error.message = result
+    end
+end
+
+function songEnd()
+    if love.filesystem.getInfo("songs/" .. nameOfSongLmao .. "/scripts/onEnd.lua") ~= nil then
+        local luaGlobalFunctions = loadstring(love.filesystem.read("states/GAME/luaGlobal.lua"))()
+        local code = love.filesystem.read("songs/" .. nameOfSongLmao .. "/scripts/onEnd.lua")
+        local ok, result = pcall(sandbox.run, code, {
+            env = luaGlobalFunctions,
+            {
+                curBeat = math.floor(Conductor.songPositionInBeats),
+                curStep = math.floor(Conductor.songPositionInBeats),
+                songPos = math.floor(Conductor.songPositionInBeats)
+            }
+        })
+        error.isShowing = not ok
+        error.message = result
+    end
+    loaded = false
+    presence.state = "In Menus"
+    stateManager:switch("songSelect")
+end
+
+function setStrumPosition(s1, s2, s3, s4)
+    s1 = s1 or {0, 0}
+    s2 = s2 or {100, 100}
+    s3 = s2 or {200, 200}
+    s4 = s2 or {300, 300}
+    strumLine.strum1.x = s1[1]
+    strumLine.strum1.y = s1[2]
+    strumLine.strum2.x = s2[1]
+    strumLine.strum2.y = s2[2]
+    strumLine.strum3.x = s3[1]
+    strumLine.strum3.y = s3[2]
+    strumLine.strum4.x = s4[1]
+    strumLine.strum4.y = s4[2]
 end
 
 return state

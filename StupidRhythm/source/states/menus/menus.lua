@@ -1,35 +1,11 @@
 local state = {}
 
-local asas = 0
-
 local selects = {"Play", "Options", "Quit"}
 local selectsExplain = {"Goes To The SongSelect Screen", "Options Menu", "Quit The Game"}
--- local menuOptions = {
---     menus = {
---         main = {
---             select = {"Play", "Options", "Quit"},
---             explain = {"Goes To The SongSelect Screen", "Options Menu", "Quit The Game"}
---         },
---         options = {
---             select = {"Toggle VSync - " .. tostring(love.window.getVSync()),
---                       "Toggle Fullscreen - " .. tostring(love.window.getFullscreen()), "Back"},
---             explain = {"Toggles VSync", "Toggles Fullscreen", "Back"}
---         },
---         songSelect = {
---             select = {"Back"},
---             explain = {"Back"}
---         }
---     }
--- }
 local curSelect = 1
 
 function state.enter()
-    presence = {
-        state = "in game",
-        details = "in main menu",
-        startTimestamp = 0,
-        endTimestamp = os.time()
-    }
+    presence.details = "in main menu"
 end
 
 function state.update(dt)
@@ -44,8 +20,9 @@ function state.draw()
         else
             love.graphics.setColor(255, 255, 255)
         end
-        love.graphics.print(v, revamped50, 10, love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) *
-            (#selects - 1) / 2 + i * revamped50:getHeight(v) + asas)
+        love.graphics.print(v, revamped50, 10,
+            love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) * (#selects - 1) / 2 + i *
+                revamped50:getHeight(v) - revamped50:getHeight(v) / 2)
     end
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(),
