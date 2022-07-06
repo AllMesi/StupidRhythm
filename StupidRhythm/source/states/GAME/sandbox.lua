@@ -51,7 +51,7 @@ local BASE_ENV = {}
 -- * load{file|string}: All unsafe because they can grant acces to global env
 -- * raw{get|set|equal}: Potentially unsafe
 -- * module|require|module: Can modify the host settings
--- * string.dump: Can display confidential server info (implementation of functions)
+-- * string.dump: Can display confidential server info (implementation of functions) 
 -- * math.randomseed: Can affect the host sytem
 -- * io.*, os.*: Most stuff there is unsafe, see below for exceptions
 

@@ -21,13 +21,13 @@ function state.draw()
     grid.draw()
     for i, v in ipairs(selects) do
         if i == curSelect then
-            love.graphics.setColor(50, 153, 187)
-        else
             love.graphics.setColor(255, 255, 255)
+        else
+            love.graphics.setColor(255, 255, 255, 127.5)
         end
-        love.graphics.print(v, revamped50, 10,
-            love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) * (#selects - 1) / 2 + i *
-                revamped50:getHeight(v) - revamped50:getHeight(v) / 2)
+        love.graphics.printf(v, vcr50, 10,
+            love.graphics.getHeight() / 2 - 30 - vcr50:getHeight(v) * (#selects - 1) / 2 + i * vcr50:getHeight(v) -
+                vcr50:getHeight(v) / 2, love.graphics.getWidth())
     end
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(),
@@ -56,13 +56,8 @@ function state.keypressed(key)
         if curSelect == 1 then
             local _, _2, _3, _4 = readSave()
             local newVSync = not love.window.getVSync()
-            if newVSync == 1 then
-                newVSync = true
-            else
-                newVSync = false
-            end
             saveGame(_, newVSync, _3, _4)
-            setSave(keybindsHaha)
+            setSave()
         elseif curSelect == 2 then
             stateManager:switch("main", true)
         end

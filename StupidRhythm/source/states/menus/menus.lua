@@ -16,13 +16,13 @@ function state.draw()
     grid.draw()
     for i, v in ipairs(selects) do
         if i == curSelect then
-            love.graphics.setColor(50, 153, 187)
-        else
             love.graphics.setColor(255, 255, 255)
+        else
+            love.graphics.setColor(255, 255, 255, 127.5)
         end
-        love.graphics.print(v, revamped50, 10,
-            love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) * (#selects - 1) / 2 + i *
-                revamped50:getHeight(v) - revamped50:getHeight(v) / 2)
+        love.graphics.printf(v, vcr50, 10,
+            love.graphics.getHeight() / 2 - 30 - vcr50:getHeight(v) * (#selects - 1) / 2 + i * vcr50:getHeight(v) -
+                vcr50:getHeight(v) / 2, love.graphics.getWidth())
     end
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(),

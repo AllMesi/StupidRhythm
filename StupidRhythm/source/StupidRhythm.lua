@@ -1,12 +1,32 @@
 local oldlgsc = love.graphics.setColor
 local oldlggc = love.graphics.getColor
 local oldlgc = love.graphics.clear
+local oldlgscc = love.graphics.setScissor
+local ffi = require("ffi")
+local SDL2 = ffi.load("SDL2")
+local windowAlpha = 1
+
+ffi.cdef [[
+  typedef struct SDL_Window SDL_Window;
+  int SDL_SetWindowOpacity(SDL_Window* window, float opacity);
+  SDL_Window *SDL_GL_GetCurrentWindow(void);
+]]
+
+-- Sets window opacity
+function love.window.setAlpha(n)
+    if n > 0 and n < 1.1 then
+        SDL2.SDL_SetWindowOpacity(SDL2.SDL_GL_GetCurrentWindow(), n)
+        windowAlpha = n
+    end
+end
+
+function love.window.getAlpha()
+    return windowAlpha
+end
 
 local major, minor, revision, codename = love.getVersion()
 
 local soundsActive = {}
-
-tab = "    "
 
 -- did because i hate the 0-1 colour range
 
@@ -22,28 +42,43 @@ function love.graphics.getColor()
     return r * 255, g * 255, b * 255, a * 255
 end
 
-function print(...)
-    love.filesystem.createDirectory("/logfiles/" .. gameStarted)
-    for i, v in ipairs({...}) do
-        io.write("[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
-        table.insert(logs, "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v))
-        love.filesystem.append("logfiles/" .. gameStarted .. "/log.log",
-            "[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
-    end
+function love.graphics.setScissor(x1, y1, x2, y2)
+    x1 = x1 or 0
+    y1 = y1 or 0
+    x2 = x2 or love.graphics.getWidth()
+    y2 = y2 or love.graphics.getHeight()
+    oldlgscc(x1, y1, x2 - x1, y2 - y1)
 end
 
 function love.graphics.clear(r, g, b, a)
     if not a then
         a = 255
     end
+    if not r then
+        r = 255
+    end
+    if not g then
+        g = 255
+    end
+    if not b then
+        b = 255
+    end
     oldlgc(r / 255, g / 255, b / 255, a / 255)
 end
+stateManager = require "stateManager"
+grid = require "gridBackground"
+flash = require "flashCircle"
+button = require "button"
 Flux = require "libs.flux"
 timer = require "libs.timer"
-stateManager = require "stateManager"
 camera = require "libs.camera"
-grid = require "gridBackground"
-discordRPC = require "libs.discordRPC"
+lume = require "libs.lume"
+json = require "libs.json"
+arson = require "libs.arson"
+if systemOS() == "Windows" then
+    discordRPC = require "libs.discordRPC"
+end
+lily = require "libs.lily"
 
 local currentTime = 0
 
@@ -52,7 +87,6 @@ screenshots = {}
 local testingMode = false
 
 wasScreenshot = false
-
 function love.getVersion()
     return major .. "." .. minor
 end
@@ -60,6 +94,10 @@ end
 screenshot = {
     path = "screenshots",
     start = function(self)
+        local ok = testingMode
+        if ok then
+            testingMode = false
+        end
         wasScreenshot = true
         currentTime = os.time()
         love.filesystem.createDirectory(self.path)
@@ -67,41 +105,18 @@ screenshot = {
             .captureScreenshot(self.path .. "/screenshot-" .. currentTime .. love.math.random(0, 100) .. ".png")
         timer.after(0.1, function()
             wasScreenshot = false
+            if ok then
+                testingMode = true
+            end
         end)
     end
 }
 
 null = nil
 
-keybindsHaha = {}
-
 currentUser = "Guest"
 
-function saveGame(keybinds, vsync, pressType, autoPlay)
-    keybinds = keybinds or {"v", "b", "delete", "end"}
-    vsync = vsync or true
-    if vsync == true then
-        vsync = 1
-    else
-        vsync = 0
-    end
-    pressType = pressType or "none"
-    autoPlay = autoPlay or false
-    love.filesystem.write("config.txt",
-        "vs=" .. tostring(vsync) .. ",\nkb={\"" .. keybinds[1] .. "\",\"" .. keybinds[2] .. "\",\"" .. keybinds[3] ..
-            "\",\"" .. keybinds[4] .. "\"},\npt=\"" .. pressType .. "\",\nap=" .. tostring(autoPlay))
-end
-
-function setSave(keybindVar)
-    local code = loadstring("return {" .. love.filesystem.read("config.txt") .. "}")()
-    love.window.setVSync(code.vs)
-    keybindsHaha = code.kb
-end
-
-function readSave()
-    local code = loadstring("return {" .. love.filesystem.read("config.txt") .. "}")()
-    return code.kb, code.vs, code.pt, code.ap
-end
+loadTime = 0
 
 function playSound(path)
     for i, s in ipairs(soundsActive) do
@@ -138,8 +153,37 @@ end
 
 function makeNewSong(name, bpm)
     love.filesystem.createDirectory("songs/" .. name .. "/scripts")
-    love.filesystem.write("songs/" .. name .. "/.sr", "[\n    bpm=" .. bpm ..
-        ",\n    audio='',\n    chart=[\n        [0,1000,1000],[1,1000,1000],[2,1000,1000],[3,1000,1000]\n    ]\n]")
+    love.filesystem.write("songs/" .. name .. "/chart.json", json.encode({
+        song = name,
+        bpm = bpm,
+        speed = 1,
+        audio = "audio.ogg",
+        notes = {{
+            velocity = 1,
+            row = 0,
+            length = 0,
+            time = 0,
+            hurt = false
+        }, {
+            velocity = 1,
+            row = 1,
+            length = 0,
+            time = 150,
+            hurt = false
+        }, {
+            velocity = 1,
+            row = 2,
+            length = 0,
+            time = 300,
+            hurt = false
+        }, {
+            velocity = 1,
+            row = 3,
+            length = 0,
+            time = 1250,
+            hurt = false
+        }}
+    }))
     love.filesystem.write("songs/" .. name .. "/scripts/onBeat.lua", "")
     love.filesystem.write("songs/" .. name .. "/scripts/onEnd.lua", "")
     love.filesystem.write("songs/" .. name .. "/scripts/onStart.lua", "")
@@ -164,7 +208,12 @@ function getFiles(rootPath, tree)
 end
 
 function getFileExtension(url)
-    return url:match"[^.]+$"
+    return url:match "[^.]+$"
+end
+
+function readSave()
+    local values = json.decode(love.filesystem.read("settings.json"))
+    return values.keys, values.vsync, values.notePressType, values.autoPlay
 end
 
 function love.graphics.linerectangle(x1, y2, x3, y4)
@@ -174,37 +223,22 @@ function love.graphics.linerectangle(x1, y2, x3, y4)
     love.graphics.line(x1, y4, x1, y2)
 end
 
-function love.audio.getCurSourceTime(source)
-    local sourcetell = math.floor(source:getTime())
-    local minutes = math.floor(sourcetell / 60)
-    local seconds = sourcetell - (minutes * 60)
-    if seconds < 10 then
-        seconds = "0" .. seconds
-    end
-    return minutes .. ":" .. seconds
+function love.graphics.newRectangle(type, x1, y1, x2, y2)
+    love.graphics.rectangle(type, x1, y1, x2 - x1, y2 - y1)
 end
 
-function love.audio.getTotalSourceTime(source)
-    local sourcetell = math.floor(source:getTotalTime())
-    local minutes = math.floor(sourcetell / 60)
-    local seconds = sourcetell - (minutes * 60)
+function formatTime(time)
+    local seconds = time % 60
+    local minutes = time / 60
     if seconds < 10 then
-        seconds = "0" .. seconds
+        return math.floor(minutes) .. ":0" .. math.floor(seconds)
+    else
+        return math.floor(minutes) .. ":" .. math.floor(seconds)
     end
-    return minutes .. ":" .. seconds
 end
 
-function love.audio.getFullSourceTime(source)
-    local sourcetell = math.floor(source:getTotalTime())
-    local sourcetell2 = math.floor(source:getTime())
-    local minutes = math.floor(sourcetell / 60)
-    local minutes2 = math.floor(sourcetell2 / 60)
-    local seconds = sourcetell - (minutes * 60)
-    local seconds2 = sourcetell2 - (minutes2 * 60)
-    if seconds < 10 then
-        seconds = "0" .. seconds
-    end
-    return minutes .. ":" .. seconds .. " / " .. minutes2 .. ":" .. seconds2
+function getTimer()
+    return love.timer.getTime() * 1000
 end
 
 function OpenSaveDirectory()
@@ -221,22 +255,6 @@ fonts = {}
 
 errorMode = false
 
-finishedLoading = false
-
-loadingFunction = function()
-
-end
-
-loadingFunctionAfter = function()
-
-end
-
-function startLoading(loadFunc, loadFuncAfter)
-    loadingFunction = loadFunc
-    loadingFunctionAfter = loadFuncAfter
-    stateManager:switch(states.loading, false)
-end
-
 states = {
     main = require "states.menus.menus",
     songSelect = require "states.menus.songSelect",
@@ -245,13 +263,6 @@ states = {
     game = require "states.GAME.game",
     chartingeditor = require "states.GAME.chartingeditor"
 }
-
-curSong = {
-    name = "",
-    bpm = 100
-}
-
-logs = {}
 
 function OpenSaveDirectory()
     love.system.openURL("file://" .. love.filesystem.getSaveDirectory())

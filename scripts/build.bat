@@ -30,9 +30,8 @@ IF [%1] == [build] goto build
     cd ..
     rmdir %dest% /S /Q > NUL 2>NUL
     mkdir %dest% > NUL 2>NUL
-    mkdir tmp > NUL 2>NUL
-    %gameName%\other\7z a -tzip tmp\StupidRhythm.love .\%gameName%\%sourceFolder%\* > NUL 2>NUL
-    copy /b StupidRhythm\LOVE\love.exe+tmp\StupidRhythm.love %dest%\%executableName%.exe > NUL 2>NUL
+    %gameName%\other\7z a -tzip StupidRhythm.love .\%gameName%\%sourceFolder%\* > NUL 2>NUL
+    copy /b StupidRhythm\LOVE\love.exe+StupidRhythm.love %dest%\%executableName%.exe > NUL 2>NUL
     xcopy StupidRhythm\LOVE\*.dll %dest%\ /E /Y > NUL 2>NUL
     xcopy %gameName%\other\* %dest% /E /Y > NUL 2>NUL
     del %dest%\7z.dll > NUL 2>NUL
@@ -41,6 +40,6 @@ IF [%1] == [build] goto build
     copy StupidRhythm\LOVE\license.txt %dest%\stuff\love2dLicense.txt > NUL 2>NUL
     copy StupidRhythm\LOVE\readme.txt %dest%\stuff\love2dReadMe.txt > NUL 2>NUL
     copy license %dest%\stuff\license.txt > NUL 2>NUL
-    rmdir tmp /S /Q > NUL 2>NUL
+    move StupidRhythm.love dist > NUL
     cd scripts > NUL 2>NUL
     exit /B

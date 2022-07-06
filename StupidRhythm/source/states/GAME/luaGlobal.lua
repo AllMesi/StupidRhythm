@@ -1,4 +1,6 @@
 local game = require "states.GAME.game"
+local shakeDuration = 0
+local shakeMagnitude = 0
 return {
     setMousePosition = function(x, y)
         x = x or 100
@@ -19,10 +21,13 @@ return {
         y = y or 100
         love.window.setPosition(x, y)
     end,
-    shakeWindow = function(radius)
-        radius = radius or 1
+    shakeWindow = function(duration, magnitude)
+        magnitude = magnitude or 1
+        duration = duration or 1
         local wx, wy = love.window.getPosition()
-        love.window.setPosition(wx + love.math.random(-radius, radius), wy + love.math.random(-radius, radius))
+        timer.during(duration, function()
+            love.window.setPosition(wx + love.math.random(-magnitude, magnitude), wy + love.math.random(-magnitude, magnitude))
+        end)
     end,
     addWindowPosition = function(x, y)
         x = x or 1
@@ -32,11 +37,9 @@ return {
     end,
     resizeWindow = function(w, h)
         local ww, wh = love.window.getWidth(), love.window.getHeight()
-        w = w or 1280
+        w = w or 1000
         h = h or 720
-        love.window.setMode(w, h, {
-            resizable = true
-        })
+        love.window.setMode(w, h)
         love.window.setPosition(ww, wh)
     end,
     getWindowPosition = function()
@@ -45,9 +48,21 @@ return {
     getWindowDimensions = function()
         return love.window.getWidth(), love.window.getHeight()
     end,
+    getWindowHeight = function()
+        return love.window.getHeight()
+    end,
+    getWindowWidth = function()
+        return love.window.getWidth()
+    end,
     setStrumPosition = function(s1, s2, s3, s4)
         game.setStrumPosition(s1, s2, s3, s4)
     end,
-    print = print,
-    love = love
+    print = function(...)
+        for i, v in ipairs({...}) do
+            io.write("[" .. os.date("%H:%M %p") .. " | StupidRhythm] " .. tostring(v) .. "\n")
+        end
+    end,
+    Conductor = require "states.GAME.conductor",
+    Game = require "states.GAME.game",
+    flux = Flux
 }

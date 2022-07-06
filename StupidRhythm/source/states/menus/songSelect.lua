@@ -19,6 +19,9 @@ function state.enter()
     presence.details = "in songSelect menu"
     refresh()
     readAndChange()
+    local data = json.decode(love.filesystem.read("testChart.json"))
+    print(data.song.bpm)
+    print(data.song.speed)
 end
 
 function state.update(dt)
@@ -30,22 +33,23 @@ function state.draw()
     grid.draw()
     for i, v in ipairs(selects) do
         if i == curSelect then
-            love.graphics.setColor(50, 153, 187)
-        else
             love.graphics.setColor(255, 255, 255)
+        else
+            love.graphics.setColor(255, 255, 255, 127.5)
         end
-        love.graphics.printf(v, revamped50, 10,
-            love.graphics.getHeight() / 2 - 30 - revamped50:getHeight(v) * (#selects - 1) / 2 + i *
-                revamped50:getHeight(v) - revamped50:getHeight(v) / 2, love.graphics.getWidth())
+        love.graphics.printf(v, vcr50, 10,
+            love.graphics.getHeight() / 2 - 30 - vcr50:getHeight(v) * (#selects - 1) / 2 + i * vcr50:getHeight(v) -
+                vcr50:getHeight(v) / 2, love.graphics.getWidth())
     end
+    love.graphics.setColor(255, 255, 255)
     if song ~= nil then
         if song:isPlaying() then
             love.graphics.rectangle("line", love.graphics.getWidth() / 2 - song:getDuration() / 2, 10,
                 song:getDuration(), 30)
             love.graphics.rectangle("fill", love.graphics.getWidth() / 2 - song:getDuration() / 2, 10, song:tell(), 30)
-            love.graphics.print(math.floor(song:tell()) .. " / " .. math.floor(song:getDuration()),
+            love.graphics.print(formatTime(song:tell()) .. " / " .. formatTime(song:getDuration()),
                 love.graphics.getWidth() / 2 -
-                    love.graphics.getFont():getWidth(math.floor(song:tell()) .. " / " .. math.floor(song:getDuration())) /
+                    love.graphics.getFont():getWidth(formatTime(song:tell()) .. " / " .. formatTime(song:getDuration())) /
                     2, 50)
             if options ~= nil then
                 love.graphics.print("\nBPM: " .. options.bpm, love.graphics.getWidth() / 2 -
@@ -117,7 +121,7 @@ function state.keypressed(key)
         end
     end
     if key == "backspace" then
-        if textBox.isInMode then
+        if textBox.isInModeName or textBox.isInModeBPM then
             local byteoffset = utf8.offset(textBox.text, -1)
             if byteoffset then
                 textBox.text = string.sub(textBox.text, 1, byteoffset - 1)
@@ -143,10 +147,11 @@ function refresh()
 end
 
 function readAndChange()
+    if song ~= nil then
+        song:stop()
+    end
     if curSelect < #selects - 1 then
-        options = loadstring("return " ..
-                                 love.filesystem.read("songs/" .. selects[curSelect] .. "/.sr"):gsub("%[", "{")
-                :gsub("%]", "}"))()
+        options = json.decode(love.filesystem.read("songs/" .. selects[curSelect] .. "/chart.json"))
         if love.filesystem.getInfo("songs/" .. selects[curSelect] .. "/" .. options.audio) ~= nil then
             if song ~= nil then
                 song:stop()
@@ -155,9 +160,7 @@ function readAndChange()
             song:setLooping(true)
             song:play()
         else
-            if song ~= nil then
-                song:stop()
-            end
+            song:stop()
         end
         presence.details = "in songSelect menu (Listening to " .. selects[curSelect] .. ")"
     else

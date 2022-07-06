@@ -24,7 +24,7 @@ function grid.changeImage(image)
 end
 
 function grid.init()
-    gridImage = love.graphics.newImage("assets/images/grid2.png")
+    gridImage = love.graphics.newImage("images/grid2.png")
     gridImage:setWrap("repeat", "repeat")
     gridQuad = love.graphics.newQuad(0, 0, love.graphics.getWidth(), love.graphics.getHeight(), gridImage:getWidth(),
         gridImage:getHeight())
